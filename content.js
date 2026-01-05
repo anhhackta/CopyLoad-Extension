@@ -1,7 +1,9 @@
-// Cache cờ cấu hình để đỡ await liên tục
+// CopyLoad v2.1 - Content Script
 let enableCtrlC = true;
+
+// Load setting
 chrome.storage.local.get(['enableCtrlC']).then(res => {
-  if (res.enableCtrlC === false) enableCtrlC = false;
+  enableCtrlC = res.enableCtrlC !== false;
 });
 
 chrome.storage.onChanged.addListener((changes, area) => {
@@ -10,46 +12,72 @@ chrome.storage.onChanged.addListener((changes, area) => {
   }
 });
 
-// Lấy text đang chọn, hỗ trợ input/textarea/contentEditable và selection thường
-function getCurrentSelectionText() {
-  const ae = document.activeElement;
-  // Input/Textarea
-  if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA')) {
-    const start = ae.selectionStart ?? 0;
-    const end = ae.selectionEnd ?? 0;
-    if (typeof start === 'number' && typeof end === 'number' && end > start) {
-      return ae.value.substring(start, end);
-    }
+// Get selected text
+function getSelection() {
+  const el = document.activeElement;
+  if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) {
+    const s = el.selectionStart, e = el.selectionEnd;
+    if (s !== e) return el.value.substring(s, e);
     return '';
   }
-  // ContentEditable hoặc selection trên trang
-  const sel = window.getSelection();
-  return sel ? sel.toString() : '';
+  return window.getSelection()?.toString() || '';
 }
 
-// Bắt mọi hành vi copy trong PAGE (Ctrl+C, menu, v.v.)
-document.addEventListener('copy', () => {
+// Copy event - save text
+document.addEventListener('copy', async (e) => {
   if (!enableCtrlC) return;
 
-  const text = getCurrentSelectionText();
-  if (text && text.trim()) {
-    chrome.runtime.sendMessage({
-      action: 'saveTempText',
-      text: text.trim()
-    });
+  // First try to get text selection
+  const text = getSelection().trim();
+  if (text) {
+    chrome.runtime.sendMessage({ action: 'saveTempText', text });
   }
-}, true); // capture=true để ưu tiên trước một số lib chặn sự kiện
 
-// Optional: khi Paste trong PAGE thì cũng lưu (hữu ích khi user paste URL đã copy ở chỗ khác)
-document.addEventListener('paste', (event) => {
+  // Then check clipboard for images (async, after copy completes)
+  setTimeout(async () => {
+    try {
+      const items = await navigator.clipboard.read();
+      for (const item of items) {
+        for (const type of item.types) {
+          if (type.startsWith('image/')) {
+            const blob = await item.getType(type);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              chrome.runtime.sendMessage({ action: 'saveImage', imageData: reader.result });
+            };
+            reader.readAsDataURL(blob);
+            return;
+          }
+        }
+      }
+    } catch (e) {
+      // Clipboard read may fail silently
+    }
+  }, 100);
+}, true);
+
+// Paste event - save text/image
+document.addEventListener('paste', (e) => {
   if (!enableCtrlC) return;
-  const cd = event.clipboardData || window.clipboardData;
+  const cd = e.clipboardData;
   if (!cd) return;
-  const pasted = cd.getData('text');
-  if (pasted && pasted.trim()) {
-    chrome.runtime.sendMessage({
-      action: 'saveTempText',
-      text: pasted.trim()
-    });
+
+  // Check for images
+  for (const item of cd.items) {
+    if (item.type.startsWith('image/')) {
+      const blob = item.getAsFile();
+      if (blob) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          chrome.runtime.sendMessage({ action: 'saveImage', imageData: reader.result });
+        };
+        reader.readAsDataURL(blob);
+      }
+      return;
+    }
   }
-}, true); 
+
+  // Text
+  const text = cd.getData('text')?.trim();
+  if (text) chrome.runtime.sendMessage({ action: 'saveTempText', text });
+}, true);

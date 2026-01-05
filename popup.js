@@ -1,512 +1,568 @@
-// Cache settings để tối ưu hiệu suất
+// CopyLoad v2.1 - Full Featured Popup
 let enableCtrlC = true;
 let enablePersistent = true;
-let currentThemeMode = 'light';
-let currentLanguage = 'vi';
+let currentTab = 'text';
+let currentTheme = 'light';
+let currentLang = 'vi';
+let contextImageIndex = -1;
 
-// DOM elements
-const textList = document.getElementById('textList');
-const toggleCtrlC = document.getElementById('toggleCtrlC');
-const togglePersistent = document.getElementById('togglePersistent');
-const downloadBtn = document.getElementById('downloadBtn');
-const clearAllBtn = document.getElementById('clearAllBtn');
-const searchInput = document.getElementById('searchInput');
-const clipboardCounter = document.getElementById('clipboardCounter');
-const languageBtn = document.getElementById('languageBtn');
-const languageContent = document.getElementById('languageContent');
-const currentLang = document.getElementById('currentLang');
-const themeBtn = document.getElementById('themeBtn');
-const themeContent = document.getElementById('themeContent');
-const currentTheme = document.getElementById('currentTheme');
-const clearAllModal = document.getElementById('clearAllModal');
-const cancelClear = document.getElementById('cancelClear');
-const confirmClear = document.getElementById('confirmClear');
-const authorName = document.getElementById('authorName');
-const supportLink = document.getElementById('supportLink');
-
-// Language management
-const languages = {
+// i18n
+const i18n = {
     vi: {
-        searchPlaceholder: 'Tìm kiếm clipboard...',
-        saveCtrlC: 'Lưu khi Ctrl+C',
-        saveToDevice: 'Lưu vào máy',
-        download: 'Download',
-        clearAll: 'Xóa hết',
-        confirmClearTitle: 'Xác nhận xóa',
-        confirmClearText: 'Bạn có chắc chắn muốn xóa tất cả clipboard? Hành động này không thể hoàn tác.',
+        search: 'Tìm kiếm...',
+        text: 'Text',
+        images: 'Ảnh',
+        download: 'Tải',
+        openFullPage: 'Mở trang quản lý',
+        importText: 'Import Text',
+        exportText: 'Export Text',
+        confirmDelete: 'Xác nhận xóa?',
+        deleteWarning: 'Dữ liệu sẽ bị xóa vĩnh viễn.',
         cancel: 'Hủy',
-        confirm: 'Xóa tất cả',
-        copySuccess: 'Đã copy vào clipboard!',
-        copyError: 'Lỗi khi copy text!',
-        deleteSuccess: 'Đã xóa text!',
-        deleteError: 'Lỗi khi xóa text!',
-        downloadSuccess: 'Đã download file thành công!',
-        downloadError: 'Lỗi khi download file!',
-        noTextToDownload: 'Không có text nào để download!',
-        noTextSaved: 'Chưa có text nào được lưu',
-        noSearchResults: 'Không tìm thấy kết quả',
-        clearAllSuccess: 'Đã xóa tất cả clipboard!',
-        clearAllError: 'Lỗi khi xóa tất cả clipboard!',
-        temp: 'temp'
+        delete: 'Xóa',
+        copyImage: 'Copy',
+        downloadImage: 'Tải ảnh',
+        deleteImage: 'Xóa ảnh',
+        copied: 'Đã copy!',
+        deleted: 'Đã xóa!',
+        downloaded: 'Đã tải!',
+        exported: 'Đã export!',
+        imported: 'Đã import!',
+        noData: 'Không có dữ liệu',
+        noText: 'Chưa có text',
+        noImage: 'Chưa có ảnh',
+        noResult: 'Không tìm thấy',
+        saveCtrlC: 'Lưu khi Ctrl+C',
+        savePersistent: 'Lưu vào máy',
+        subtitle: 'Quản lý Clipboard'
     },
     en: {
-        searchPlaceholder: 'Search clipboard...',
-        saveCtrlC: 'Save when Ctrl+C',
-        saveToDevice: 'Save to device',
+        search: 'Search...',
+        text: 'Text',
+        images: 'Images',
         download: 'Download',
-        clearAll: 'Clear All',
-        confirmClearTitle: 'Confirm Delete',
-        confirmClearText: 'Are you sure you want to delete all clipboards? This action cannot be undone.',
+        openFullPage: 'Open Full Page',
+        importText: 'Import Text',
+        exportText: 'Export Text',
+        confirmDelete: 'Confirm Delete?',
+        deleteWarning: 'Data will be permanently deleted.',
         cancel: 'Cancel',
-        confirm: 'Delete All',
-        copySuccess: 'Copied to clipboard!',
-        copyError: 'Error copying text!',
-        deleteSuccess: 'Text deleted!',
-        deleteError: 'Error deleting text!',
-        downloadSuccess: 'File downloaded successfully!',
-        downloadError: 'Error downloading file!',
-        noTextToDownload: 'No text to download!',
-        noTextSaved: 'No text saved yet',
-        noSearchResults: 'No results found',
-        clearAllSuccess: 'All clipboards cleared!',
-        clearAllError: 'Error clearing all clipboards!',
-        temp: 'temp'
+        delete: 'Delete',
+        copyImage: 'Copy',
+        downloadImage: 'Download',
+        deleteImage: 'Delete',
+        copied: 'Copied!',
+        deleted: 'Deleted!',
+        downloaded: 'Downloaded!',
+        exported: 'Exported!',
+        imported: 'Imported!',
+        noData: 'No data',
+        noText: 'No text yet',
+        noImage: 'No images yet',
+        noResult: 'No results',
+        saveCtrlC: 'Save on Ctrl+C',
+        savePersistent: 'Save to device',
+        subtitle: 'Clipboard Manager'
     }
 };
 
-// Load settings khi popup mở
+// DOM
+const $ = id => document.getElementById(id);
+const textList = $('textList');
+const imageList = $('imageList');
+const imageGrid = $('imageGrid');
+const searchInput = $('searchInput');
+const textCount = $('textCount');
+const imageCount = $('imageCount');
+const tabText = $('tabText');
+const tabImages = $('tabImages');
+const themeBtn = $('themeBtn');
+const themeIcon = $('themeIcon');
+const langBtn = $('langBtn');
+const settingsBtn = $('settingsBtn');
+const settingsContent = $('settingsContent');
+const toggleCtrlC = $('toggleCtrlC');
+const togglePersistent = $('togglePersistent');
+const labelCtrlC = $('labelCtrlC');
+const labelPersistent = $('labelPersistent');
+const brandTitle = $('brandTitle');
+const downloadBtn = $('downloadBtn');
+const clearAllBtn = $('clearAllBtn');
+const clearAllModal = $('clearAllModal');
+const cancelClear = $('cancelClear');
+const confirmClear = $('confirmClear');
+const imagePreviewModal = $('imagePreviewModal');
+const previewImage = $('previewImage');
+const imageContextMenu = $('imageContextMenu');
+const ctxCopyImage = $('ctxCopyImage');
+const ctxDownloadImage = $('ctxDownloadImage');
+const ctxDeleteImage = $('ctxDeleteImage');
+const importBtn = $('importBtn');
+const exportBtn = $('exportBtn');
+const importFileInput = $('importFileInput');
+const openFullPage = $('openFullPage');
+const authorLink = $('authorLink');
+const storageFill = $('storageFill');
+const storageText = $('storageText');
+
+// Init
 document.addEventListener('DOMContentLoaded', async () => {
-    await loadAllSettings();
-    setupEventListeners();
-    await loadTextList();
+    await loadSettings();
+    setupListeners();
+    await loadData();
+    await updateStorage();
 });
 
-// Load tất cả settings một lần
-async function loadAllSettings() {
-    try {
-        const result = await chrome.storage.local.get(['enableCtrlC', 'enablePersistent', 'theme', 'language']);
-        
-        // Cache settings
-        enableCtrlC = result.enableCtrlC !== false;
-        enablePersistent = result.enablePersistent !== false;
-        currentThemeMode = result.theme || 'light';
-        currentLanguage = result.language || 'vi';
-        
-        // Apply settings
-        toggleCtrlC.checked = enableCtrlC;
-        togglePersistent.checked = enablePersistent;
-        applyTheme(currentThemeMode);
-        updateThemeButton();
-        updateLanguageUI();
-        
-        // Listen for settings changes
-        chrome.storage.onChanged.addListener((changes, area) => {
-            if (area === 'local') {
-                if ('enableCtrlC' in changes) {
-                    enableCtrlC = changes.enableCtrlC.newValue !== false;
-                    toggleCtrlC.checked = enableCtrlC;
-                }
-                if ('enablePersistent' in changes) {
-                    enablePersistent = changes.enablePersistent.newValue !== false;
-                    togglePersistent.checked = enablePersistent;
-                }
-                if ('theme' in changes) {
-                    currentThemeMode = changes.theme.newValue || 'light';
-                    applyTheme(currentThemeMode);
-                    updateThemeButton();
-                }
-                if ('language' in changes) {
-                    currentLanguage = changes.language.newValue || 'vi';
-                    updateLanguageUI();
-                }
-            }
-        });
-    } catch (error) {
-        console.error('Lỗi khi load settings:', error);
-    }
+// Load settings
+async function loadSettings() {
+    const res = await chrome.storage.local.get(['enableCtrlC', 'enablePersistent', 'theme', 'language']);
+    enableCtrlC = res.enableCtrlC !== false;
+    enablePersistent = res.enablePersistent !== false;
+    currentTheme = res.theme || 'light';
+    currentLang = res.language || 'vi';
+
+    applyTheme();
+    applyLang();
+    updateToggles();
 }
 
-// Apply theme
-function applyTheme(theme) {
-    document.documentElement.setAttribute('data-theme', theme);
-    if (theme === 'system') {
-        const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-    }
+function applyTheme() {
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    themeIcon.innerHTML = currentTheme === 'dark'
+        ? '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>'
+        : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
 }
 
-// Update theme button
-function updateThemeButton() {
-    const icons = { light: '🌞', dark: '🌙', system: '🖥️' };
-    currentTheme.textContent = icons[currentThemeMode] || '🌙';
+function applyLang() {
+    langBtn.textContent = currentLang === 'vi' ? 'VN' : 'EN';
+    const t = i18n[currentLang];
+
+    // Update all i18n elements
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (t[key]) el.textContent = t[key];
+    });
+
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        if (t[key]) el.placeholder = t[key];
+    });
+
+    labelCtrlC.textContent = t.saveCtrlC;
+    labelPersistent.textContent = t.savePersistent;
+    brandTitle.textContent = t.subtitle;
 }
 
-// Update language UI
-function updateLanguageUI() {
-    currentLang.textContent = currentLanguage === 'vi' ? 'VN' : 'EN';
-    searchInput.placeholder = languages[currentLanguage].searchPlaceholder;
-    
-    // Update toggle texts
-    const toggleTexts = document.querySelectorAll('.toggle-text');
-    if (toggleTexts[0]) toggleTexts[0].textContent = languages[currentLanguage].saveCtrlC;
-    if (toggleTexts[1]) toggleTexts[1].textContent = languages[currentLanguage].saveToDevice;
-    
-    // Update button texts
-    downloadBtn.innerHTML = `
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-            <polyline points="7,10 12,15 17,10"></polyline>
-            <line x1="12" y1="15" x2="12" y2="3"></line>
-        </svg>
-        ${languages[currentLanguage].download}
-    `;
-    
-    clearAllBtn.innerHTML = `
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="3,6 5,6 21,6"></polyline>
-            <path d="M19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"></path>
-        </svg>
-        ${languages[currentLanguage].clearAll}
-    `;
-    
-    // Update modal texts
-    const modalTitle = clearAllModal.querySelector('.modal-title');
-    const modalText = clearAllModal.querySelector('.modal-text');
-    const cancelBtn = clearAllModal.querySelector('#cancelClear');
-    const confirmBtn = clearAllModal.querySelector('#confirmClear');
-    
-    if (modalTitle) modalTitle.textContent = languages[currentLanguage].confirmClearTitle;
-    if (modalText) modalText.textContent = languages[currentLanguage].confirmClearText;
-    if (cancelBtn) cancelBtn.textContent = languages[currentLanguage].cancel;
-    if (confirmBtn) confirmBtn.textContent = languages[currentLanguage].confirm;
+function updateToggles() {
+    toggleCtrlC.classList.toggle('active', enableCtrlC);
+    togglePersistent.classList.toggle('active', enablePersistent);
 }
 
-// Setup event listeners
-function setupEventListeners() {
-    // Theme dropdown
-    themeBtn.addEventListener('click', () => {
-        themeContent.classList.toggle('show');
-        languageContent.classList.remove('show');
-    });
-    
-    themeContent.addEventListener('click', async (e) => {
-        if (e.target.classList.contains('dropdown-item')) {
-            const theme = e.target.getAttribute('data-theme');
-            await chrome.storage.local.set({ theme });
-            themeContent.classList.remove('show');
-        }
-    });
-    
-    // Language dropdown
-    languageBtn.addEventListener('click', () => {
-        languageContent.classList.toggle('show');
-        themeContent.classList.remove('show');
-    });
-    
-    languageContent.addEventListener('click', async (e) => {
-        if (e.target.classList.contains('dropdown-item')) {
-            const lang = e.target.getAttribute('data-lang');
-            await chrome.storage.local.set({ language: lang });
-            languageContent.classList.remove('show');
-        }
-    });
-    
-    // Close dropdowns when clicking outside
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.dropdown')) {
-            languageContent.classList.remove('show');
-            themeContent.classList.remove('show');
-        }
-    });
-    
-    // Author links
-    authorName.addEventListener('click', () => {
-        chrome.tabs.create({ url: 'https://www.facebook.com/anhhackta.official' });
-    });
-    
-    supportLink.addEventListener('click', () => {
-        chrome.tabs.create({ url: 'http://paypal.me/bahoang2k2' });
-    });
-    
-    // Clear all modal
-    clearAllBtn.addEventListener('click', () => {
-        clearAllModal.style.display = 'block';
-    });
-    
-    cancelClear.addEventListener('click', () => {
-        clearAllModal.style.display = 'none';
-    });
-    
-    confirmClear.addEventListener('click', async () => {
-        await clearAllClipboards();
-        clearAllModal.style.display = 'none';
-    });
-    
-    // Close modal when clicking outside
-    clearAllModal.addEventListener('click', (e) => {
-        if (e.target === clearAllModal) {
-            clearAllModal.style.display = 'none';
-        }
-    });
-    
-    // Save settings khi toggle thay đổi
-    toggleCtrlC.addEventListener('change', async () => {
-        await chrome.storage.local.set({ enableCtrlC: toggleCtrlC.checked });
-    });
-    
-    togglePersistent.addEventListener('change', async () => {
-        await chrome.storage.local.set({ enablePersistent: togglePersistent.checked });
-        await loadTextList();
-    });
-    
-    // Search functionality
-    searchInput.addEventListener('input', async () => {
-        await loadTextList();
-    });
-    
-    // Download button
-    downloadBtn.addEventListener('click', downloadAllTexts);
-    
-    // Reload danh sách khi popup được focus
-    window.addEventListener('focus', loadTextList);
-    
-    // Listen for system theme changes
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-        if (currentThemeMode === 'system') {
-            applyTheme('system');
-        }
-    });
+// Setup listeners
+function setupListeners() {
+    // Language toggle
+    langBtn.onclick = async () => {
+        currentLang = currentLang === 'vi' ? 'en' : 'vi';
+        await chrome.storage.local.set({ language: currentLang });
+        applyLang();
+    };
+
+    // Theme toggle
+    themeBtn.onclick = async () => {
+        currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        await chrome.storage.local.set({ theme: currentTheme });
+        applyTheme();
+    };
+
+    // Settings dropdown
+    settingsBtn.onclick = e => {
+        e.stopPropagation();
+        settingsContent.classList.toggle('show');
+    };
+
+    // Toggle Ctrl+C
+    toggleCtrlC.onclick = async () => {
+        enableCtrlC = !enableCtrlC;
+        await chrome.storage.local.set({ enableCtrlC });
+        updateToggles();
+    };
+
+    // Toggle Persistent
+    togglePersistent.onclick = async () => {
+        enablePersistent = !enablePersistent;
+        await chrome.storage.local.set({ enablePersistent });
+        updateToggles();
+    };
+
+    // Close dropdowns
+    document.onclick = () => {
+        settingsContent.classList.remove('show');
+        hideContextMenu();
+    };
+
+    // Tabs
+    tabText.onclick = () => switchTab('text');
+    tabImages.onclick = () => switchTab('images');
+
+    // Open full page
+    openFullPage.onclick = () => chrome.tabs.create({ url: 'index.html' });
+
+    // Import/Export
+    importBtn.onclick = () => importFileInput.click();
+    importFileInput.onchange = importData;
+    exportBtn.onclick = exportData;
+
+    // Search
+    searchInput.oninput = loadData;
+
+    // Download
+    downloadBtn.onclick = () => {
+        if (currentTab === 'text') downloadTextAsTxt();
+    };
+
+    // Clear all
+    clearAllBtn.onclick = () => clearAllModal.classList.add('show');
+    cancelClear.onclick = () => clearAllModal.classList.remove('show');
+    confirmClear.onclick = async () => {
+        await clearAll();
+        clearAllModal.classList.remove('show');
+    };
+    clearAllModal.onclick = e => { if (e.target === clearAllModal) clearAllModal.classList.remove('show'); };
+
+    // Image preview
+    imagePreviewModal.onclick = e => { if (e.target === imagePreviewModal) imagePreviewModal.classList.remove('show'); };
+
+    // Context menu actions
+    ctxCopyImage.onclick = copyContextImage;
+    ctxDownloadImage.onclick = downloadContextImage;
+    ctxDeleteImage.onclick = deleteContextImage;
+
+    // Author
+    authorLink.onclick = () => chrome.tabs.create({ url: 'https://github.com/anhhackta/' });
+
+    // Reload on focus
+    window.onfocus = () => { loadData(); updateStorage(); };
+
+    // Storage changes
+    chrome.storage.onChanged.addListener(() => { loadData(); updateStorage(); });
 }
 
-// Load và hiển thị danh sách text
-async function loadTextList() {
-    try {
-        const [tempResult, persistentResult] = await Promise.all([
-            chrome.storage.session.get(['clipboard_temp']),
-            chrome.storage.local.get(['clipboard_persistent'])
-        ]);
-
-        const tempTexts = tempResult.clipboard_temp || [];
-        const persistentTexts = persistentResult.clipboard_persistent || [];
-        
-        // Kết hợp và loại bỏ trùng lặp
-        let allTexts = [...new Set([...tempTexts, ...persistentTexts])];
-        
-        // Filter by search
-        const searchTerm = searchInput.value.toLowerCase();
-        if (searchTerm) {
-            allTexts = allTexts.filter(text => 
-                text.toLowerCase().includes(searchTerm)
-            );
-        }
-        
-        // Update counter
-        clipboardCounter.textContent = allTexts.length;
-        
-        displayTextList(allTexts, tempTexts);
-    } catch (error) {
-        console.error('Lỗi khi load text list:', error);
-        displayTextList([], []);
-    }
+// Switch tabs
+function switchTab(tab) {
+    currentTab = tab;
+    tabText.classList.toggle('active', tab === 'text');
+    tabImages.classList.toggle('active', tab === 'images');
+    textList.classList.toggle('active', tab === 'text');
+    imageList.classList.toggle('active', tab === 'images');
 }
 
-// Hiển thị danh sách text với chiều cao đồng nhất
-function displayTextList(texts, tempTexts) {
-    if (texts.length === 0) {
-        textList.innerHTML = `
-            <div class="empty-state">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M9 12l2 2 4-4"></path>
-                    <path d="M21 12c-1 0-2-1-2-2s1-2 2-2 2 1 2 2-1 2-2 2z"></path>
-                    <path d="M3 12c1 0 2-1 2-2s-1-2-2-2-2 1-2 2 1 2 2 2z"></path>
-                    <path d="M12 3c0 1-1 2-2 2s-2-1-2-2 1-2 2-2 2 1 2 2z"></path>
-                    <path d="M12 21c0-1 1-2 2-2s2 1 2 2-1 2-2 2-2-1-2-2z"></path>
-                </svg>
-                <div>${searchInput.value ? languages[currentLanguage].noSearchResults : languages[currentLanguage].noTextSaved}</div>
-            </div>
-        `;
+// Load all data
+async function loadData() {
+    await Promise.all([loadTexts(), loadImages()]);
+}
+
+// Load texts
+async function loadTexts() {
+    const [temp, local] = await Promise.all([
+        chrome.storage.session.get(['clipboard_temp']),
+        chrome.storage.local.get(['clipboard_persistent'])
+    ]);
+
+    const tempTexts = temp.clipboard_temp || [];
+    const persistentTexts = local.clipboard_persistent || [];
+    let allTexts = [...new Set([...tempTexts, ...persistentTexts])];
+
+    textCount.textContent = allTexts.length;
+
+    const q = searchInput.value.toLowerCase();
+    if (q) allTexts = allTexts.filter(t => t.toLowerCase().includes(q));
+
+    renderTexts(allTexts, tempTexts);
+}
+
+function renderTexts(texts, tempTexts) {
+    const t = i18n[currentLang];
+    if (!texts.length) {
+        textList.innerHTML = `<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg><div class="empty-state-text">${searchInput.value ? t.noResult : t.noText}</div></div>`;
         return;
     }
 
-    textList.innerHTML = texts.map((text, index) => {
+    textList.innerHTML = texts.map(text => {
         const isTemp = tempTexts.includes(text);
-        const tempTag = isTemp ? `<div class="temp-tag">${languages[currentLanguage].temp}</div>` : '';
-        
-        return `
-            <div class="text-item" data-text="${encodeURIComponent(text)}">
-                ${tempTag}
-                <div class="text-content" title="${text}">
-                    <div class="text-line">${truncateText(text, 45)}</div>
-                </div>
-                <div class="text-actions">
-                    <button class="btn btn-copy" data-text="${encodeURIComponent(text)}">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                        </svg>
-                        Copy
-                    </button>
-                    <button class="btn btn-delete" data-text="${encodeURIComponent(text)}">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="3,6 5,6 21,6"></polyline>
-                            <path d="M19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"></path>
-                        </svg>
-                        Del
-                    </button>
-                </div>
+        return `<div class="text-item" data-text="${encodeURIComponent(text)}">
+            <div class="text-content"><div class="text-line" title="${escapeHtml(text)}">${escapeHtml(truncate(text, 50))}</div></div>
+            ${isTemp ? '<span class="temp-tag">temp</span>' : ''}
+            <div class="text-actions">
+                <button class="btn-sm btn-copy" title="Copy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+                <button class="btn-sm btn-delete" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path></svg></button>
             </div>
-        `;
+        </div>`;
     }).join('');
 
-    // Add event listeners for copy and delete buttons
-    textList.querySelectorAll('.btn-copy').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-            e.preventDefault();
-            const encodedText = btn.getAttribute('data-text');
-            await copyText(encodedText);
-        });
-    });
+    // Event delegation
+    textList.onclick = async e => {
+        const item = e.target.closest('.text-item');
+        if (!item) return;
+        const text = decodeURIComponent(item.dataset.text);
 
-    textList.querySelectorAll('.btn-delete').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-            e.preventDefault();
-            const encodedText = btn.getAttribute('data-text');
-            await deleteText(encodedText);
-        });
-    });
+        if (e.target.closest('.btn-copy')) {
+            await navigator.clipboard.writeText(text);
+            notify(i18n[currentLang].copied, 'success');
+        } else if (e.target.closest('.btn-delete')) {
+            await deleteText(text);
+        } else {
+            await navigator.clipboard.writeText(text);
+            notify(i18n[currentLang].copied, 'success');
+        }
+    };
 }
 
-// Cắt text nếu quá dài - tối ưu cho hiển thị 1 dòng
-function truncateText(text, maxLength) {
-    if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength) + '...';
+// Load images
+async function loadImages() {
+    const res = await chrome.storage.local.get(['clipboard_images']);
+    const images = res.clipboard_images || [];
+    imageCount.textContent = images.length;
+    renderImages(images);
 }
 
-// Copy text
-async function copyText(encodedText) {
-    try {
-        const text = decodeURIComponent(encodedText);
-        await navigator.clipboard.writeText(text);
-        showNotification(languages[currentLanguage].copySuccess);
-    } catch (error) {
-        console.error('Lỗi khi copy text:', error);
-        showNotification(languages[currentLanguage].copyError, 'error');
+function renderImages(images) {
+    const t = i18n[currentLang];
+    if (!images.length) {
+        imageGrid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg><div class="empty-state-text">${t.noImage}</div></div>`;
+        return;
     }
+
+    imageGrid.innerHTML = images.map((img, i) => `
+        <div class="image-item" data-index="${i}">
+            <img src="${img}" alt="">
+            <div class="image-overlay">
+                <button class="img-btn copy-img-btn" title="Copy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+                <button class="img-btn download-img-btn" title="Download"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></button>
+                <button class="img-btn danger delete-img-btn" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path></svg></button>
+            </div>
+        </div>
+    `).join('');
+
+    // Event handlers
+    imageGrid.onclick = async e => {
+        const item = e.target.closest('.image-item');
+        if (!item) return;
+        const idx = parseInt(item.dataset.index);
+
+        if (e.target.closest('.copy-img-btn')) {
+            await copyImageByIndex(idx);
+        } else if (e.target.closest('.download-img-btn')) {
+            downloadImageByIndex(idx);
+        } else if (e.target.closest('.delete-img-btn')) {
+            await deleteImageByIndex(idx);
+        } else {
+            // Click on image = preview
+            previewImage.src = images[idx];
+            imagePreviewModal.classList.add('show');
+        }
+    };
+
+    // Right-click context menu
+    imageGrid.oncontextmenu = e => {
+        const item = e.target.closest('.image-item');
+        if (item) {
+            e.preventDefault();
+            contextImageIndex = parseInt(item.dataset.index);
+            showContextMenu(e.clientX, e.clientY);
+        }
+    };
+}
+
+// Context menu
+function showContextMenu(x, y) {
+    imageContextMenu.style.display = 'block';
+    imageContextMenu.style.left = `${Math.min(x, window.innerWidth - 140)}px`;
+    imageContextMenu.style.top = `${Math.min(y, window.innerHeight - 100)}px`;
+}
+
+function hideContextMenu() {
+    imageContextMenu.style.display = 'none';
+    contextImageIndex = -1;
+}
+
+// Image actions
+async function copyImageByIndex(idx) {
+    const res = await chrome.storage.local.get(['clipboard_images']);
+    const images = res.clipboard_images || [];
+    if (images[idx]) {
+        try {
+            const response = await fetch(images[idx]);
+            const blob = await response.blob();
+            await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
+            notify(i18n[currentLang].copied, 'success');
+        } catch (e) {
+            console.error('Copy failed:', e);
+        }
+    }
+}
+
+function downloadImageByIndex(idx) {
+    chrome.storage.local.get(['clipboard_images']).then(res => {
+        const images = res.clipboard_images || [];
+        if (images[idx]) {
+            const a = document.createElement('a');
+            a.href = images[idx];
+            a.download = `copyload_${Date.now()}.png`;
+            a.click();
+            notify(i18n[currentLang].downloaded, 'success');
+        }
+    });
+}
+
+async function deleteImageByIndex(idx) {
+    const res = await chrome.storage.local.get(['clipboard_images']);
+    const images = res.clipboard_images || [];
+    images.splice(idx, 1);
+    await chrome.storage.local.set({ clipboard_images: images });
+    await loadImages();
+    await updateStorage();
+    notify(i18n[currentLang].deleted, 'success');
+}
+
+// Context menu actions
+async function copyContextImage() {
+    if (contextImageIndex >= 0) await copyImageByIndex(contextImageIndex);
+    hideContextMenu();
+}
+
+function downloadContextImage() {
+    if (contextImageIndex >= 0) downloadImageByIndex(contextImageIndex);
+    hideContextMenu();
+}
+
+async function deleteContextImage() {
+    if (contextImageIndex >= 0) await deleteImageByIndex(contextImageIndex);
+    hideContextMenu();
 }
 
 // Delete text
-async function deleteText(encodedText) {
-    try {
-        const text = decodeURIComponent(encodedText);
-        
-        const [tempResult, persistentResult] = await Promise.all([
-            chrome.storage.session.get(['clipboard_temp']),
-            chrome.storage.local.get(['clipboard_persistent'])
-        ]);
+async function deleteText(text) {
+    const [temp, local] = await Promise.all([
+        chrome.storage.session.get(['clipboard_temp']),
+        chrome.storage.local.get(['clipboard_persistent'])
+    ]);
 
-        const tempTexts = tempResult.clipboard_temp || [];
-        const persistentTexts = persistentResult.clipboard_persistent || [];
+    await Promise.all([
+        chrome.storage.session.set({ clipboard_temp: (temp.clipboard_temp || []).filter(t => t !== text) }),
+        chrome.storage.local.set({ clipboard_persistent: (local.clipboard_persistent || []).filter(t => t !== text) })
+    ]);
 
-        const newTempTexts = tempTexts.filter(t => t !== text);
-        const newPersistentTexts = persistentTexts.filter(t => t !== text);
-
-        await Promise.all([
-            chrome.storage.session.set({ clipboard_temp: newTempTexts }),
-            chrome.storage.local.set({ clipboard_persistent: newPersistentTexts })
-        ]);
-
-        await loadTextList();
-        showNotification(languages[currentLanguage].deleteSuccess);
-    } catch (error) {
-        console.error('Lỗi khi xóa text:', error);
-        showNotification(languages[currentLanguage].deleteError, 'error');
-    }
+    await loadTexts();
+    await updateStorage();
+    notify(i18n[currentLang].deleted, 'success');
 }
 
-// Clear all clipboards
-async function clearAllClipboards() {
-    try {
+// Clear all
+async function clearAll() {
+    if (currentTab === 'text') {
         await Promise.all([
             chrome.storage.session.set({ clipboard_temp: [] }),
             chrome.storage.local.set({ clipboard_persistent: [] })
         ]);
-        
-        await loadTextList();
-        showNotification(languages[currentLanguage].clearAllSuccess);
-    } catch (error) {
-        console.error('Lỗi khi xóa tất cả clipboard:', error);
-        showNotification(languages[currentLanguage].clearAllError, 'error');
+    } else {
+        await chrome.storage.local.set({ clipboard_images: [] });
     }
+    await loadData();
+    await updateStorage();
+    notify(i18n[currentLang].deleted, 'success');
 }
 
-// Download tất cả text
-async function downloadAllTexts() {
+// Download text as TXT
+async function downloadTextAsTxt() {
+    const [temp, local] = await Promise.all([
+        chrome.storage.session.get(['clipboard_temp']),
+        chrome.storage.local.get(['clipboard_persistent'])
+    ]);
+
+    const allTexts = [...new Set([...(temp.clipboard_temp || []), ...(local.clipboard_persistent || [])])];
+    if (!allTexts.length) { notify(i18n[currentLang].noData, 'error'); return; }
+
+    const content = allTexts.map((t, i) => `${i + 1}. ${t}`).join('\n\n');
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `copyload_${new Date().toISOString().slice(0, 10)}.txt`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    notify(i18n[currentLang].downloaded, 'success');
+}
+
+// Export
+async function exportData() {
+    const local = await chrome.storage.local.get(['clipboard_persistent']);
+    const texts = local.clipboard_persistent || [];
+    if (!texts.length) { notify(i18n[currentLang].noData, 'error'); return; }
+
+    const blob = new Blob([JSON.stringify({ version: '2.1', texts }, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `copyload_backup_${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    notify(i18n[currentLang].exported, 'success');
+    settingsContent.classList.remove('show');
+}
+
+// Import
+async function importData(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
     try {
-        const [tempResult, persistentResult] = await Promise.all([
-            chrome.storage.session.get(['clipboard_temp']),
-            chrome.storage.local.get(['clipboard_persistent'])
-        ]);
+        const text = await file.text();
+        let newTexts = [];
 
-        const tempTexts = tempResult.clipboard_temp || [];
-        const persistentTexts = persistentResult.clipboard_persistent || [];
-        
-        const allTexts = [...new Set([...tempTexts, ...persistentTexts])];
-        
-        if (allTexts.length === 0) {
-            showNotification(languages[currentLanguage].noTextToDownload, 'warning');
-            return;
+        if (file.name.endsWith('.json')) {
+            const data = JSON.parse(text);
+            newTexts = data.texts || [];
+        } else {
+            newTexts = text.split('\n').map(l => l.replace(/^\d+\.\s*/, '').trim()).filter(Boolean);
         }
 
-        const content = allTexts.map((text, index) => `${index + 1}. ${text}`).join('\n\n');
-        
-        const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `copyload_texts_${new Date().toISOString().slice(0, 10)}.txt`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        
-        showNotification(languages[currentLanguage].downloadSuccess);
-    } catch (error) {
-        console.error('Lỗi khi download:', error);
-        showNotification(languages[currentLanguage].downloadError, 'error');
+        const local = await chrome.storage.local.get(['clipboard_persistent']);
+        const merged = [...new Set([...newTexts, ...(local.clipboard_persistent || [])])];
+        await chrome.storage.local.set({ clipboard_persistent: merged });
+        await loadTexts();
+        await updateStorage();
+        notify(`${i18n[currentLang].imported} (${newTexts.length})`, 'success');
+    } catch (err) {
+        notify('Error', 'error');
     }
+
+    e.target.value = '';
+    settingsContent.classList.remove('show');
 }
 
-// Hiển thị thông báo
-function showNotification(message, type = 'success') {
-    const notification = document.createElement('div');
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 12px 16px;
-        border-radius: 6px;
-        color: white;
-        font-size: 14px;
-        font-weight: 500;
-        z-index: 1000;
-        animation: slideIn 0.3s ease;
-        background: ${type === 'error' ? '#dc3545' : type === 'warning' ? '#ffc107' : '#28a745'};
-    `;
-    notification.textContent = message;
-    
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-    `;
-    document.head.appendChild(style);
-    
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        notification.remove();
-        style.remove();
-    }, 3000);
-} 
+// Update storage
+async function updateStorage() {
+    try {
+        const bytes = await chrome.storage.local.getBytesInUse();
+        const max = chrome.storage.local.QUOTA_BYTES || 10485760;
+        const pct = Math.min((bytes / max) * 100, 100);
+
+        storageFill.style.width = `${pct}%`;
+        storageFill.className = 'storage-fill' + (pct > 90 ? ' danger' : pct > 70 ? ' warning' : '');
+
+        if (bytes < 1024) storageText.textContent = `${bytes}B`;
+        else if (bytes < 1048576) storageText.textContent = `${(bytes / 1024).toFixed(0)}KB`;
+        else storageText.textContent = `${(bytes / 1048576).toFixed(1)}MB`;
+    } catch (e) { }
+}
+
+// Helpers
+function truncate(str, len) { return str.length <= len ? str : str.slice(0, len) + '...'; }
+function escapeHtml(str) { const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
+
+function notify(msg, type = 'success') {
+    document.querySelectorAll('.notification').forEach(n => n.remove());
+    const n = document.createElement('div');
+    n.className = `notification ${type}`;
+    n.textContent = msg;
+    document.body.appendChild(n);
+    setTimeout(() => n.remove(), 1800);
+}

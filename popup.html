@@ -1,16 +1,19 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CopyLoad</title>
     <link rel="stylesheet" href="popup.css">
 </head>
+
 <body>
     <div class="container">
+        <!-- Header -->
         <div class="header">
             <div class="header-left">
-                <a href="https://anhhackta.github.io/" target="_blank"  class="brand-logo-container">
+                <a href="https://anhhackta.github.io/" target="_blank" class="brand-logo-container">
                     <div class="brand-logo">
                         <div class="logo-inner">
                             <span class="logo-text">CL</span>
@@ -20,110 +23,191 @@
                 </a>
                 <div class="brand-text-container">
                     <span class="brand-name">CopyLoad</span>
-                    <span class="brand-title">Save every copy</span>
+                    <span class="brand-title" id="brandTitle">Clipboard Manager</span>
                 </div>
             </div>
             <div class="header-controls">
-                <div class="dropdown" id="languageDropdown">
-                    <button class="dropdown-btn" id="languageBtn">
-                        <span id="currentLang">VN</span>
+                <!-- Language -->
+                <button class="icon-btn" id="langBtn" title="Language">VN</button>
+
+                <!-- Theme -->
+                <button class="icon-btn" id="themeBtn" title="Theme">
+                    <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+
+                <!-- Settings -->
+                <div class="dropdown" id="settingsDropdown">
+                    <button class="icon-btn" id="settingsBtn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path
+                                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                            </path>
+                        </svg>
                     </button>
-                    <div class="dropdown-content" id="languageContent">
-                        <div class="dropdown-item active" data-lang="vi">VN</div>
-                        <div class="dropdown-item" data-lang="en">EN</div>
+                    <div class="dropdown-content" id="settingsContent">
+                        <!-- Toggle: Save on Ctrl+C -->
+                        <div class="dropdown-toggle">
+                            <span id="labelCtrlC">Lưu khi Ctrl+C</span>
+                            <div class="toggle-switch active" id="toggleCtrlC"></div>
+                        </div>
+                        <!-- Toggle: Save to Device -->
+                        <div class="dropdown-toggle">
+                            <span id="labelPersistent">Lưu vào máy</span>
+                            <div class="toggle-switch active" id="togglePersistent"></div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <div class="dropdown-item" id="openFullPage">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                                <path d="M9 3v18"></path>
+                            </svg>
+                            <span data-i18n="openFullPage">Mở trang quản lý</span>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <div class="dropdown-item" id="importBtn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            <span data-i18n="importText">Import Text</span>
+                        </div>
+                        <div class="dropdown-item" id="exportBtn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            <span data-i18n="exportText">Export Text</span>
+                        </div>
                     </div>
                 </div>
-                
-                <div class="dropdown" id="themeDropdown">
-                    <button class="dropdown-btn" id="themeBtn">
-                        <span id="currentTheme">🌙</span>
-                    </button>
-                    <div class="dropdown-content" id="themeContent">
-                        <div class="dropdown-item" data-theme="light">🌞</div>
-                        <div class="dropdown-item" data-theme="dark">🌙</div>
-                        <div class="dropdown-item" data-theme="system">🖥️</div>
-                    </div>
+            </div>
+        </div>
+
+        <!-- Controls Bar -->
+        <div class="controls-bar">
+            <div class="search-wrapper">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="M21 21l-4.35-4.35"></path>
+                </svg>
+                <input type="text" id="searchInput" class="search-input" placeholder="Tìm kiếm..."
+                    data-i18n-placeholder="search">
+            </div>
+            <button class="control-btn primary" id="downloadBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                <span data-i18n="download">Tải</span>
+            </button>
+            <button class="control-btn danger" id="clearAllBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+                </svg>
+            </button>
+            <div class="storage-indicator" id="storageIndicator" title="Dung lượng">
+                <div class="storage-bar">
+                    <div class="storage-fill" id="storageFill" style="width: 0%"></div>
                 </div>
+                <span id="storageText">0KB</span>
             </div>
         </div>
-        
-        <div class="controls">
-            <div class="toggle-group">
-                <label class="toggle-label">
-                    <input type="checkbox" id="toggleCtrlC" checked>
-                    <span class="toggle-slider"></span>
-                    <span class="toggle-text">Lưu khi Ctrl+C</span>
-                </label>
-            </div>
-            
-            <div class="toggle-group">
-                <label class="toggle-label">
-                    <input type="checkbox" id="togglePersistent" checked>
-                    <span class="toggle-slider"></span>
-                    <span class="toggle-text">Lưu vào máy</span>
-                </label>
-            </div>
+
+        <!-- Tabs -->
+        <div class="tabs-container">
+            <button class="tab-btn active" data-tab="text" id="tabText">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                </svg>
+                <span data-i18n="text">Text</span>
+                <span class="tab-count" id="textCount">0</span>
+            </button>
+            <button class="tab-btn" data-tab="images" id="tabImages">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+                <span data-i18n="images">Ảnh</span>
+                <span class="tab-count" id="imageCount">0</span>
+            </button>
         </div>
-        
-        <div class="search-section">
-            <div class="search-container">
-                <input type="text" id="searchInput" class="search-input" placeholder="Tìm kiếm clipboard...">
-                <div class="clipboard-counter" id="clipboardCounter">0</div>
-            </div>
+
+        <!-- Text List -->
+        <div class="list-container active" id="textList"></div>
+
+        <!-- Image List -->
+        <div class="list-container" id="imageList">
+            <div class="image-grid" id="imageGrid"></div>
         </div>
-        
-        <div class="text-list" id="textList">
-            <!-- Danh sách text sẽ được thêm vào đây -->
-        </div>
-        
+
+        <!-- Footer -->
         <div class="footer">
-            <div class="footer-buttons">
-                <button id="downloadBtn" class="download-btn">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="7,10 12,15 17,10"></polyline>
-                        <line x1="12" y1="15" x2="12" y2="3"></line>
-                    </svg>
-                    Download
-                </button>
-                <button id="clearAllBtn" class="clear-all-btn">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="3,6 5,6 21,6"></polyline>
-                        <path d="M19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"></path>
-                    </svg>
-                    Xóa hết
-                </button>
-            </div>
-            
-            <div class="author">
-                <div class="author-links">
-                    <!-- Nguyễn Bá Hoàng - link đến Facebook -->
-                    <a class="author-link" id="authorName">Nguyễn Bá Hoàng</a>
-                    <span>-</span>
-                    <!-- Ủng hộ ý tưởng - link đến PayPal -->
-                    <a class="author-link" id="supportLink">Donate</a>
+            <div class="footer-left">
+                <div class="author-info">
+                    <a class="author-link" id="authorLink">@anhhackta</a>
                 </div>
-                <a href="https://github.com/anhhackta/" target="_blank" class="github-link">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                    </svg>
-                </a>
             </div>
         </div>
     </div>
-    
-    <!-- Modal for clear all confirmation -->
+
+    <!-- Clear All Modal -->
     <div id="clearAllModal" class="modal">
         <div class="modal-content">
-            <div class="modal-title">Xác nhận xóa</div>
-            <div class="modal-text">Bạn có chắc chắn muốn xóa tất cả clipboard? Hành động này không thể hoàn tác.</div>
+            <div class="modal-title" data-i18n="confirmDelete">Xác nhận xóa?</div>
+            <div class="modal-text" data-i18n="deleteWarning">Dữ liệu sẽ bị xóa vĩnh viễn.</div>
             <div class="modal-buttons">
-                <button class="modal-btn modal-btn-cancel" id="cancelClear">Hủy</button>
-                <button class="modal-btn modal-btn-confirm" id="confirmClear">Xóa tất cả</button>
+                <button class="modal-btn modal-btn-cancel" id="cancelClear" data-i18n="cancel">Hủy</button>
+                <button class="modal-btn modal-btn-confirm" id="confirmClear" data-i18n="delete">Xóa</button>
             </div>
         </div>
     </div>
-    
+
+    <!-- Image Preview Modal -->
+    <div id="imagePreviewModal" class="modal image-preview-modal">
+        <div class="modal-content">
+            <img id="previewImage" src="" alt="Preview">
+        </div>
+    </div>
+
+    <!-- Context Menu for Images -->
+    <div id="imageContextMenu" class="context-menu" style="display: none;">
+        <div class="context-menu-item" id="ctxCopyImage">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            <span data-i18n="copyImage">Copy</span>
+        </div>
+        <div class="context-menu-item" id="ctxDownloadImage">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            <span data-i18n="downloadImage">Tải ảnh</span>
+        </div>
+        <div class="context-menu-item danger" id="ctxDeleteImage">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+            </svg>
+            <span data-i18n="deleteImage">Xóa ảnh</span>
+        </div>
+    </div>
+
+    <!-- Hidden file input -->
+    <input type="file" id="importFileInput" class="hidden-input" accept=".txt,.json">
+
     <script src="popup.js"></script>
 </body>
-</html> 
+
+</html>
