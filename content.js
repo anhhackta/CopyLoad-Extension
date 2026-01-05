@@ -1,18 +1,19 @@
-// CopyLoad v2.1 - Content Script
+// CopyLoad Pro v3.0 - Content Script
 let enableCtrlC = true;
 
-// Load setting
-chrome.storage.local.get(['enableCtrlC']).then(res => {
-  enableCtrlC = res.enableCtrlC !== false;
+// Load settings from chrome.storage
+chrome.storage.local.get(['enableCtrlC']).then(result => {
+  enableCtrlC = result.enableCtrlC !== false;
 });
 
+// Listen for settings changes
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area === 'local' && 'enableCtrlC' in changes) {
     enableCtrlC = changes.enableCtrlC.newValue !== false;
   }
 });
 
-// Get selected text
+// Get text selection
 function getSelection() {
   const el = document.activeElement;
   if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) {
@@ -23,17 +24,17 @@ function getSelection() {
   return window.getSelection()?.toString() || '';
 }
 
-// Copy event - save text
+// Copy event handler
 document.addEventListener('copy', async (e) => {
   if (!enableCtrlC) return;
 
-  // First try to get text selection
+  // Save text selection
   const text = getSelection().trim();
   if (text) {
-    chrome.runtime.sendMessage({ action: 'saveTempText', text });
+    chrome.runtime.sendMessage({ action: 'saveText', text }).catch(() => { });
   }
 
-  // Then check clipboard for images (async, after copy completes)
+  // Check for images in clipboard after a short delay
   setTimeout(async () => {
     try {
       const items = await navigator.clipboard.read();
@@ -43,7 +44,7 @@ document.addEventListener('copy', async (e) => {
             const blob = await item.getType(type);
             const reader = new FileReader();
             reader.onloadend = () => {
-              chrome.runtime.sendMessage({ action: 'saveImage', imageData: reader.result });
+              chrome.runtime.sendMessage({ action: 'saveImage', imageData: reader.result }).catch(() => { });
             };
             reader.readAsDataURL(blob);
             return;
@@ -51,33 +52,36 @@ document.addEventListener('copy', async (e) => {
         }
       }
     } catch (e) {
-      // Clipboard read may fail silently
+      // Clipboard read failed silently
     }
-  }, 100);
+  }, 50);
 }, true);
 
-// Paste event - save text/image
+// Paste event handler
 document.addEventListener('paste', (e) => {
   if (!enableCtrlC) return;
+
   const cd = e.clipboardData;
   if (!cd) return;
 
-  // Check for images
+  // Check for images first
   for (const item of cd.items) {
     if (item.type.startsWith('image/')) {
       const blob = item.getAsFile();
       if (blob) {
         const reader = new FileReader();
         reader.onloadend = () => {
-          chrome.runtime.sendMessage({ action: 'saveImage', imageData: reader.result });
+          chrome.runtime.sendMessage({ action: 'saveImage', imageData: reader.result }).catch(() => { });
         };
         reader.readAsDataURL(blob);
       }
-      return;
+      return; // Exit after handling image
     }
   }
 
-  // Text
+  // Save text
   const text = cd.getData('text')?.trim();
-  if (text) chrome.runtime.sendMessage({ action: 'saveTempText', text });
+  if (text) {
+    chrome.runtime.sendMessage({ action: 'saveText', text }).catch(() => { });
+  }
 }, true);

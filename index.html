@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CopyLoad - Quản lý Clipboard</title>
+  <title>CopyLoad Pro - Manager</title>
   <link rel="stylesheet" href="fullpage.css">
 </head>
 
@@ -17,7 +17,10 @@
           <div class="logo-icon">CL</div>
           <div class="logo-text">
             <span class="logo-name">CopyLoad</span>
-            <span class="logo-version">v2.1</span>
+            <div class="logo-version">
+              <span>v3.0</span>
+              <span class="premium-badge" id="premiumBadge">FREE</span>
+            </div>
           </div>
         </div>
       </div>
@@ -40,6 +43,17 @@
           <span data-i18n="imageClipboard">Image Clipboard</span>
           <span class="nav-count" id="navImageCount">0</span>
         </button>
+
+        <div class="nav-divider"></div>
+
+        <button class="nav-item nav-premium" data-tab="premium" id="premiumNav">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon
+              points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+            </polygon>
+          </svg>
+          <span data-i18n="premium">Premium</span>
+        </button>
       </nav>
 
       <div class="sidebar-footer">
@@ -51,7 +65,7 @@
           <div class="storage-bar-full">
             <div class="storage-fill-full" id="storageFillFull"></div>
           </div>
-          <span class="storage-size" id="storageSizeFull">0 KB / 10 MB</span>
+          <span class="storage-size" id="storageSizeFull">0 MB / 500 MB</span>
         </div>
 
         <button class="settings-btn" id="toggleThemeFull">
@@ -68,6 +82,20 @@
             <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
           </svg>
           <span id="langLabel">Tiếng Việt</span>
+        </button>
+
+        <!-- Premium Quick Activation -->
+        <div class="premium-quick" id="premiumQuick">
+          <input type="text" class="premium-quick-input" id="premiumKeyQuick" placeholder="Premium Key..."
+            maxlength="20">
+          <button class="premium-quick-btn" id="activateBtnQuick" data-i18n="activate">Kích hoạt</button>
+        </div>
+        <button class="settings-btn danger-btn" id="deactivateBtn" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18.36 6.64A9 9 0 1 1 5.64 5.64 9 9 0 0 1 18.36 6.64z"></path>
+            <line x1="12" y1="2" x2="12" y2="12"></line>
+          </svg>
+          <span data-i18n="deactivate">Hủy Premium</span>
         </button>
 
         <div class="author-credit">
@@ -126,10 +154,77 @@
       <div class="content-area" id="imageContent">
         <div class="image-grid-full" id="imageGridFull"></div>
       </div>
+
+      <!-- Premium Content -->
+      <div class="content-area" id="premiumContent">
+        <div class="premium-section" id="premiumSection">
+          <div class="premium-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon
+                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+              </polygon>
+            </svg>
+          </div>
+          <h2 class="premium-title" data-i18n="upgradeToPro">Nâng cấp lên Premium</h2>
+          <p class="premium-desc" data-i18n="premiumDesc">Mở khóa tất cả tính năng nâng cao với giấy phép vĩnh viễn.</p>
+
+          <div class="premium-features">
+            <div class="premium-feature">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span data-i18n="feat1">Không giới hạn ảnh</span>
+            </div>
+            <div class="premium-feature">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span data-i18n="feat2">Dung lượng lưu trữ không giới hạn</span>
+            </div>
+            <div class="premium-feature">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span data-i18n="feat3">Thư mục quản lý text</span>
+            </div>
+            <div class="premium-feature">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span data-i18n="feat4">Tìm kiếm nâng cao</span>
+            </div>
+            <div class="premium-feature">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span data-i18n="feat5">Tự động loại bỏ text trùng lặp</span>
+            </div>
+            <div class="premium-feature">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span data-i18n="feat6">Tùy chỉnh background</span>
+            </div>
+          </div>
+
+          <div class="premium-input-group" id="activationGroup">
+            <input type="text" class="premium-input" id="premiumKeyInput" placeholder="Nhập key..." maxlength="20">
+            <button class="premium-activate" id="activateBtn" data-i18n="activate">Kích hoạt</button>
+          </div>
+
+          <div class="premium-success" id="premiumSuccess" style="display: none;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <h3 data-i18n="activated">Đã kích hoạt thành công!</h3>
+            <p data-i18n="enjoyPro">Bạn đã mở khóa tất cả tính năng Premium.</p>
+          </div>
+        </div>
+      </div>
     </main>
   </div>
 
-  <!-- Modal -->
+  <!-- Modals -->
   <div id="modalFull" class="modal-overlay">
     <div class="modal-box">
       <h3 id="modalTitle" data-i18n="confirmDelete">Xác nhận xóa?</h3>
@@ -141,12 +236,11 @@
     </div>
   </div>
 
-  <!-- Image Preview -->
   <div id="imagePreviewFull" class="image-preview-overlay">
     <img id="previewImgFull" src="" alt="">
     <div class="preview-info">
-      <span class="preview-size" id="previewSize"></span>
-      <span class="preview-time" id="previewTime"></span>
+      <span id="previewSize"></span>
+      <span id="previewTime"></span>
     </div>
     <div class="preview-actions">
       <button class="preview-btn" id="previewCopy" data-i18n="copy">Copy</button>
@@ -156,24 +250,10 @@
     </div>
   </div>
 
-  <!-- Text Detail Modal -->
-  <div id="textDetailModal" class="modal-overlay">
-    <div class="modal-box wide">
-      <div class="text-detail-header">
-        <h3 data-i18n="textDetail">Chi tiết</h3>
-        <span class="text-time" id="textDetailTime"></span>
-      </div>
-      <div class="text-detail-content" id="textDetailContent"></div>
-      <div class="modal-actions">
-        <button class="modal-btn" id="textDetailCopy" data-i18n="copy">Copy</button>
-        <button class="modal-btn danger" id="textDetailDelete" data-i18n="delete">Xóa</button>
-        <button class="modal-btn" id="textDetailClose" data-i18n="close">Đóng</button>
-      </div>
-    </div>
-  </div>
-
   <input type="file" id="importFileFull" style="display:none" accept=".txt,.json">
+  <input type="file" id="uploadImageInput" style="display:none" accept="image/*" multiple>
 
+  <script src="db.js"></script>
   <script src="fullpage.js"></script>
 </body>
 
