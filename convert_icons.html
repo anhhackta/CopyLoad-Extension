@@ -1,83 +1,203 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Convert SVG to PNG</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Icon Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0a0b0d; --surface:#111318; --surface2:#181b22;
+  --border:#252830; --accent:#7fffb2; --accent2:#4fd9ff;
+  --text:#e8eaf0; --muted:#5a5f70; --r:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:32px 24px}
+.container{max-width:860px;margin:auto}
+
+.header{display:flex;align-items:baseline;gap:12px;margin-bottom:36px}
+.header h1{font-size:26px;font-weight:800;letter-spacing:-.5px}
+.header span{font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);background:rgba(127,255,178,.08);border:1px solid rgba(127,255,178,.2);padding:3px 8px;border-radius:4px;letter-spacing:.5px}
+
+.upload-zone{border:1.5px dashed var(--border);border-radius:var(--r);background:var(--surface);padding:40px 20px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;margin-bottom:24px}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--accent);background:rgba(127,255,178,.04)}
+.upload-zone.has-image{padding:20px;border-style:solid;border-color:var(--border)}
+.upload-icon{width:40px;height:40px;border-radius:10px;background:var(--surface2);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:20px;transition:transform .2s}
+.upload-zone:hover .upload-icon{transform:translateY(-2px)}
+.upload-label{font-size:14px;font-weight:600;margin-bottom:4px}
+.upload-sub{font-size:12px;color:var(--muted);font-family:'DM Mono',monospace}
+
+.preview-wrap{display:none;align-items:center;gap:16px}
+.preview-wrap.visible{display:flex}
+.checker{background-image:linear-gradient(45deg,#1a1d24 25%,transparent 25%),linear-gradient(-45deg,#1a1d24 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#1a1d24 75%),linear-gradient(-45deg,transparent 75%,#1a1d24 75%);background-size:10px 10px;background-color:#111418;border-radius:8px;overflow:hidden;flex-shrink:0}
+.preview-img{width:72px;height:72px;object-fit:contain;display:block;padding:8px}
+.preview-info .name{font-size:14px;font-weight:600;margin-bottom:3px}
+.preview-info .change{font-size:12px;color:var(--muted);cursor:pointer;font-family:'DM Mono',monospace;text-decoration:underline;text-underline-offset:2px}
+.preview-info .change:hover{color:var(--accent2)}
+
+.section-label{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px}
+.sizes-grid{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px}
+.size-chip{font-family:'DM Mono',monospace;font-size:12px;background:var(--surface);border:1px solid var(--border);color:var(--muted);padding:5px 12px;border-radius:6px;cursor:pointer;transition:all .15s;user-select:none}
+.size-chip:hover{border-color:var(--accent);color:var(--accent)}
+.size-chip.active{background:rgba(127,255,178,.1);border-color:var(--accent);color:var(--accent)}
+
+.controls{display:flex;gap:8px;margin-bottom:28px;flex-wrap:wrap}
+.input-wrap{display:flex;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;flex:1;min-width:160px}
+.input-wrap label{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);padding:0 10px;white-space:nowrap;border-right:1px solid var(--border)}
+.input-wrap input{background:transparent;border:none;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:9px 10px;width:80px;outline:none}
+.btn{font-family:'Syne',sans-serif;font-size:13px;font-weight:600;padding:9px 18px;border-radius:8px;border:none;cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn-ghost{background:var(--surface);color:var(--muted);border:1px solid var(--border)}
+.btn-ghost:hover{color:var(--text);border-color:var(--muted)}
+.btn-accent{background:var(--accent);color:#0a0b0d}
+.btn-accent:hover{background:#a5ffca;transform:translateY(-1px)}
+.btn-accent:active{transform:translateY(0)}
+.btn-outline{background:transparent;color:var(--accent2);border:1px solid rgba(79,217,255,.3)}
+.btn-outline:hover{background:rgba(79,217,255,.08);border-color:var(--accent2)}
+
+.results-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.count-badge{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)}
+.results-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+.result-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px;text-align:center;transition:border-color .2s,transform .2s;animation:pop .2s ease both}
+@keyframes pop{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+.result-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.result-card .checker{width:100%;margin-bottom:8px;display:flex;align-items:center;justify-content:center;min-height:80px}
+.result-card img{max-width:100%;max-height:96px;width:auto;height:auto;display:block;padding:6px;object-fit:contain}
+.result-card img.small-icon{image-rendering:pixelated;image-rendering:crisp-edges}
+.result-size{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:8px}
+.result-size strong{color:var(--text);font-weight:500}
+.btn-dl{width:100%;font-family:'DM Mono',monospace;font-size:11px;padding:6px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;transition:all .15s}
+.btn-dl:hover{border-color:var(--accent2);color:var(--accent2)}
+</style>
 </head>
 <body>
-    <canvas id="canvas16" width="16" height="16"></canvas>
-    <canvas id="canvas48" width="48" height="48"></canvas>
-    <canvas id="canvas128" width="128" height="128"></canvas>
-    
-    <script>
-        const svgContent = `<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
-    </linearGradient>
-  </defs>
-  
-  <!-- Background circle -->
-  <circle cx="64" cy="64" r="60" fill="url(#grad1)" stroke="#fff" stroke-width="4"/>
-  
-  <!-- Clipboard icon -->
-  <g transform="translate(32, 28)">
-    <!-- Main clipboard -->
-    <rect x="8" y="8" width="48" height="64" rx="4" fill="#fff" stroke="#333" stroke-width="2"/>
-    
-    <!-- Clipboard top -->
-    <rect x="16" y="4" width="32" height="8" rx="2" fill="#fff" stroke="#333" stroke-width="2"/>
-    
-    <!-- Lines representing text -->
-    <rect x="16" y="20" width="32" height="2" fill="#667eea" rx="1"/>
-    <rect x="16" y="26" width="28" height="2" fill="#667eea" rx="1"/>
-    <rect x="16" y="32" width="32" height="2" fill="#667eea" rx="1"/>
-    <rect x="16" y="38" width="24" height="2" fill="#667eea" rx="1"/>
-    <rect x="16" y="44" width="32" height="2" fill="#667eea" rx="1"/>
-    <rect x="16" y="50" width="28" height="2" fill="#667eea" rx="1"/>
-    <rect x="16" y="56" width="32" height="2" fill="#667eea" rx="1"/>
-    <rect x="16" y="62" width="20" height="2" fill="#667eea" rx="1"/>
-  </g>
-  
-  <!-- Copy symbol -->
-  <g transform="translate(72, 48)">
-    <rect x="4" y="4" width="32" height="40" rx="3" fill="#fff" stroke="#333" stroke-width="2" opacity="0.8"/>
-    <rect x="8" y="8" width="24" height="32" rx="2" fill="#667eea" opacity="0.3"/>
-  </g>
-</svg>`;
+<div class="container">
 
-        function convertToPNG(canvasId, size) {
-            const canvas = document.getElementById(canvasId);
-            const ctx = canvas.getContext('2d');
-            
-            // Create image from SVG
-            const img = new Image();
-            const svgBlob = new Blob([svgContent], {type: 'image/svg+xml'});
-            const url = URL.createObjectURL(svgBlob);
-            
-            img.onload = function() {
-                // Clear canvas
-                ctx.clearRect(0, 0, size, size);
-                
-                // Draw SVG to canvas
-                ctx.drawImage(img, 0, 0, size, size);
-                
-                // Convert to PNG
-                canvas.toBlob(function(blob) {
-                    const link = document.createElement('a');
-                    link.download = `icon${size}.png`;
-                    link.href = URL.createObjectURL(blob);
-                    link.click();
-                }, 'image/png');
-            };
-            
-            img.src = url;
+  <div class="header">
+    <h1>Icon Generator</h1>
+    <span>PNG · MULTI-SIZE</span>
+  </div>
+
+  <div class="upload-zone" id="dropZone">
+    <input type="file" id="fileInput" hidden accept="image/*,.svg">
+    <div id="uploadPrompt">
+      <div class="upload-icon">⬆</div>
+      <div class="upload-label">Drop image or click to upload</div>
+      <div class="upload-sub">PNG · SVG · JPG · WEBP</div>
+    </div>
+    <div class="preview-wrap" id="previewWrap">
+      <div class="checker"><img class="preview-img" id="previewImg" src="" alt=""></div>
+      <div class="preview-info">
+        <div class="name" id="previewName">image.png</div>
+        <div class="change" id="changeBtn">↩ change image</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-label">Select sizes</div>
+  <div class="sizes-grid" id="sizesGrid"></div>
+
+  <div class="controls">
+    <div class="input-wrap">
+      <label>px</label>
+      <input type="number" id="customSize" placeholder="40" min="1" max="4096">
+    </div>
+    <button class="btn btn-ghost" onclick="addCustom()">+ Add</button>
+    <button class="btn btn-accent" onclick="generate()">⚙ Generate</button>
+    <button class="btn btn-outline" id="dlAllBtn" onclick="downloadAll()" style="display:none">↓ Download all</button>
+  </div>
+
+  <div class="results-header" id="resultsHeader" style="display:none">
+    <div class="section-label" style="margin:0">Results</div>
+    <div class="count-badge" id="countBadge"></div>
+  </div>
+  <div class="results-grid" id="resultsGrid"></div>
+
+</div>
+<script>
+const PRESETS=[16,24,32,40,48,64,96,128,256,512];
+let imageSrc=null, selected=new Set(), generated=[];
+const $=id=>document.getElementById(id);
+const sizesGrid=$('sizesGrid'), resultsGrid=$('resultsGrid');
+const dropZone=$('dropZone'), fileInput=$('fileInput');
+
+PRESETS.forEach(addChip);
+
+function addChip(size){
+  const c=document.createElement('div');
+  c.className='size-chip'; c.textContent=size+'px'; c.dataset.size=size;
+  c.onclick=()=>{ c.classList.toggle('active'); selected.has(size)?selected.delete(size):selected.add(size); };
+  sizesGrid.appendChild(c);
+}
+
+function addCustom(){
+  const v=parseInt($('customSize').value);
+  if(!v||v<1||v>4096||document.querySelector(`.size-chip[data-size="${v}"]`)) return;
+  addChip(v); selected.add(v);
+  document.querySelector(`.size-chip[data-size="${v}"]`).classList.add('active');
+  $('customSize').value='';
+}
+
+dropZone.onclick=e=>{ if(e.target.id==='changeBtn'||!imageSrc) fileInput.click(); };
+$('changeBtn').onclick=e=>{ e.stopPropagation(); fileInput.click(); };
+fileInput.onchange=e=>loadFile(e.target.files[0]);
+dropZone.ondragover=e=>{ e.preventDefault(); dropZone.classList.add('drag'); };
+dropZone.ondragleave=()=>dropZone.classList.remove('drag');
+dropZone.ondrop=e=>{ e.preventDefault(); dropZone.classList.remove('drag'); loadFile(e.dataTransfer.files[0]); };
+
+function loadFile(f){
+  if(!f) return;
+  imageSrc=URL.createObjectURL(f);
+  $('previewImg').src=imageSrc; $('previewName').textContent=f.name;
+  $('uploadPrompt').style.display='none';
+  $('previewWrap').classList.add('visible');
+  dropZone.classList.add('has-image');
+}
+
+function generate(){
+  if(!imageSrc) return alert('Please upload an image');
+  if(!selected.size) return alert('Please select at least one size');
+  generated=[]; resultsGrid.innerHTML='';
+  $('resultsHeader').style.display='none'; $('dlAllBtn').style.display='none';
+  const img=new Image();
+  img.onload=()=>{
+    let done=0;
+    const sizes=[...selected].sort((a,b)=>a-b);
+    sizes.forEach((size,i)=>{
+      const canvas=document.createElement('canvas');
+      canvas.width=canvas.height=size;
+      const ctx=canvas.getContext('2d');
+      const scale=Math.min(size/img.width,size/img.height);
+      const w=img.width*scale, h=img.height*scale;
+      ctx.drawImage(img,(size-w)/2,(size-h)/2,w,h);
+      canvas.toBlob(blob=>{
+        const url=URL.createObjectURL(blob);
+        generated.push({size,url}); addCard(size,url,i);
+        if(++done===sizes.length){
+          $('resultsHeader').style.display='flex';
+          $('countBadge').textContent=`${done} icons`;
+          $('dlAllBtn').style.display='';
         }
-        
-        // Convert to different sizes
-        setTimeout(() => convertToPNG('canvas16', 16), 100);
-        setTimeout(() => convertToPNG('canvas48', 48), 200);
-        setTimeout(() => convertToPNG('canvas128', 128), 300);
-    </script>
+      },'image/png');
+    });
+  };
+  img.src=imageSrc;
+}
+
+function addCard(size,url,i){
+  const card=document.createElement('div');
+  card.className='result-card'; card.style.animationDelay=`${i*.04}s`;
+  const dim=Math.min(size,96), cls=size<=48?'small-icon':'';
+  card.innerHTML=`<div class="checker"><img src="${url}" class="${cls}" style="width:${dim}px;height:${dim}px;"></div><div class="result-size"><strong>${size}</strong> × ${size}</div><button class="btn-dl" onclick="dl('${url}',${size})">↓ .png</button>`;
+  resultsGrid.appendChild(card);
+}
+
+function dl(url,size){
+  const a=document.createElement('a'); a.href=url; a.download=`icon-${size}x${size}.png`; a.click();
+}
+
+function downloadAll(){
+  generated.sort((a,b)=>a.size-b.size).forEach(({url,size})=>dl(url,size));
+}
+</script>
 </body>
-</html> 
+</html>

@@ -1,10 +1,11 @@
-// CopyLoad Pro v3.0 - Popup Script
+// CopyLoad v2.0.1 - Popup Script
 const DB = window.CopyLoadDB;
 let currentTab = 'text';
 let currentTheme = 'light';
 let currentLang = 'vi';
 let isPremiumUser = false;
 let contextImageId = null;
+let activeObjectURLs = [];
 
 // Complete i18n
 const i18n = {
@@ -263,8 +264,7 @@ function renderTexts(texts) {
         if (!item) return;
 
         const id = parseInt(item.dataset.id);
-        const texts = await DB.getAllTexts();
-        const text = texts.find(t => t.id === id);
+        const text = await DB.getText(id);
         if (!text) return;
 
         if (e.target.closest('.btn-copy')) {
@@ -290,6 +290,10 @@ async function loadImages() {
 }
 
 function renderImages(images) {
+    // Revoke previous Object URLs to prevent memory leak
+    activeObjectURLs.forEach(url => URL.revokeObjectURL(url));
+    activeObjectURLs = [];
+
     if (!els.imageGrid) return;
     const t = i18n[currentLang];
 
@@ -300,6 +304,7 @@ function renderImages(images) {
 
     els.imageGrid.innerHTML = images.map(img => {
         const src = img.thumbnail ? URL.createObjectURL(img.thumbnail) : URL.createObjectURL(img.blob);
+        activeObjectURLs.push(src);
         return `<div class="image-item" data-id="${img.id}">
             <img src="${src}" alt="">
             <div class="image-overlay">
@@ -407,7 +412,7 @@ async function exportData() {
     const texts = await DB.getAllTexts();
     if (!texts.length) return;
 
-    const data = { version: '3.0', exportedAt: Date.now(), texts };
+    const data = { version: '2.0.1', exportedAt: Date.now(), texts };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);

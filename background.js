@@ -1,4 +1,4 @@
-// CopyLoad Pro v3.0 - Background Service Worker
+// CopyLoad v2.0.1 - Background Service Worker
 // Uses chrome.storage.local for settings (shared) and IndexedDB for data
 
 const DB_NAME = 'CopyLoadDB';
@@ -29,7 +29,12 @@ async function initDB() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
     request.onerror = () => reject(request.error);
-    request.onsuccess = () => { db = request.result; resolve(db); };
+    request.onsuccess = () => {
+      db = request.result;
+      db.onclose = () => { db = null; };
+      db.onversionchange = () => { db.close(); db = null; };
+      resolve(db);
+    };
     request.onupgradeneeded = (e) => {
       const database = e.target.result;
       if (!database.objectStoreNames.contains('texts')) {
@@ -199,23 +204,29 @@ chrome.contextMenus.onClicked.addListener(async (info) => {
 
 // Message listener
 chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
-  loadSettings().then(async () => {
+  (async () => {
     try {
+      await loadSettings();
+
       if (req.action === 'saveText' && req.text) {
         await saveText(req.text);
         sendResponse({ success: true });
+        return;
       }
 
       if (req.action === 'saveImage') {
         if (req.imageData) await saveImageFromBase64(req.imageData);
         else if (req.imageUrl) await saveImageFromUrl(req.imageUrl);
         sendResponse({ success: true });
+        return;
       }
+
+      sendResponse({ success: false, error: 'Unknown action' });
     } catch (e) {
       console.error('Message handler error:', e);
       sendResponse({ success: false, error: e.message });
     }
-  });
+  })();
 
   return true; // Keep channel open for async
 });

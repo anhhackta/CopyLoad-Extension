@@ -1,4 +1,4 @@
-// CopyLoad Pro v3.0 - Database Module
+// CopyLoad v2.0.1 - Database Module
 // Uses IndexedDB for data, chrome.storage.local for settings (shared with service worker)
 
 const DB_NAME = 'CopyLoadDB';
@@ -14,7 +14,13 @@ function initDB() {
 
         const request = indexedDB.open(DB_NAME, DB_VERSION);
         request.onerror = () => reject(request.error);
-        request.onsuccess = () => { db = request.result; resolve(db); };
+        request.onsuccess = () => {
+            db = request.result;
+            // Auto-reconnect if connection is closed unexpectedly
+            db.onclose = () => { db = null; };
+            db.onversionchange = () => { db.close(); db = null; };
+            resolve(db);
+        };
 
         request.onupgradeneeded = (e) => {
             const database = e.target.result;
@@ -126,6 +132,15 @@ async function getTextByHash(hash) {
     });
 }
 
+async function getText(id) {
+    await initDB();
+    return new Promise(resolve => {
+        const req = getStore('texts').get(id);
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => resolve(null);
+    });
+}
+
 async function getAllTexts() {
     await initDB();
     return new Promise(resolve => {
@@ -177,9 +192,20 @@ async function getTextCount() {
 }
 
 async function searchTexts(query) {
-    const allTexts = await getAllTexts();
+    await initDB();
     const q = query.toLowerCase();
-    return allTexts.filter(t => t.content.toLowerCase().includes(q));
+    const results = [];
+    return new Promise(resolve => {
+        const req = getStore('texts').openCursor(null, 'prev');
+        req.onsuccess = e => {
+            const c = e.target.result;
+            if (c) {
+                if (c.value.content.toLowerCase().includes(q)) results.push(c.value);
+                c.continue();
+            } else resolve(results);
+        };
+        req.onerror = () => resolve(results);
+    });
 }
 
 // ==================== IMAGES ====================
@@ -319,13 +345,18 @@ async function deleteFolder(id) {
 async function getStorageUsed() {
     await initDB();
     let total = 0;
-
-    const images = await getAllImages();
-    images.forEach(img => total += img.size || 0);
-
-    const texts = await getAllTexts();
-    texts.forEach(t => total += new Blob([t.content]).size);
-
+    // Use cursors to avoid loading full image blobs into memory
+    const countFromStore = (storeName, getSizeFn) => new Promise(resolve => {
+        const req = getStore(storeName).openCursor();
+        req.onsuccess = e => {
+            const c = e.target.result;
+            if (c) { total += getSizeFn(c.value); c.continue(); }
+            else resolve();
+        };
+        req.onerror = () => resolve();
+    });
+    await countFromStore('images', v => v.size || 0);
+    await countFromStore('texts', v => v.content ? v.content.length * 2 : 0); // ~2 bytes per char
     return total;
 }
 
@@ -350,7 +381,7 @@ window.CopyLoadDB = {
     getSetting, setSetting, getSettings,
     isPremium, activatePremium, deactivatePremium,
     // Texts
-    saveText, getAllTexts, updateText, deleteText, clearAllTexts, getTextCount, searchTexts,
+    saveText, getText, getAllTexts, updateText, deleteText, clearAllTexts, getTextCount, searchTexts,
     // Images
     saveImage, saveImageFromBase64, getAllImages, getImage, deleteImage, clearAllImages, getImageCount,
     // Folders

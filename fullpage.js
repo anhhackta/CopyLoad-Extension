@@ -1,10 +1,11 @@
-// CopyLoad Pro v3.0 - Full Page Manager
+// CopyLoad v2.0.1 - Full Page Manager
 const DB = window.CopyLoadDB;
 let currentTab = 'text';
 let currentTheme = 'light';
 let currentLang = 'vi';
 let isPremiumUser = false;
 let previewImageId = null;
+let activeObjectURLs = [];
 
 // i18n
 const i18n = {
@@ -281,8 +282,7 @@ function renderTexts(texts) {
         const card = e.target.closest('.text-card');
         if (!card) return;
         const id = parseInt(card.dataset.id);
-        const texts = await DB.getAllTexts();
-        const text = texts.find(t => t.id === id);
+        const text = await DB.getText(id);
         if (!text) return;
 
         if (e.target.closest('.copy-btn')) {
@@ -306,13 +306,20 @@ async function loadImages() {
 
 function renderImages(images) {
     const t = i18n[currentLang];
+
+    // Revoke previous Object URLs to prevent memory leak
+    activeObjectURLs.forEach(url => URL.revokeObjectURL(url));
+    activeObjectURLs = [];
+
     if (!images.length) {
         els.imageGridFull.innerHTML = `<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><p>${t.noImage}</p></div>`;
         return;
     }
 
     els.imageGridFull.innerHTML = images.map(img => {
-        const src = img.thumbnail ? URL.createObjectURL(img.thumbnail) : URL.createObjectURL(img.blob);
+        // Use full blob for the manager page (thumbnails are only 200px and look blurry at larger sizes)
+        const src = URL.createObjectURL(img.blob);
+        activeObjectURLs.push(src);
         return `<div class="image-card" data-id="${img.id}">
             <img src="${src}" alt="">
             <div class="image-card-overlay">
@@ -456,7 +463,7 @@ async function clearAll() {
 async function exportData() {
     const texts = await DB.getAllTexts();
     if (!texts.length) return;
-    const blob = new Blob([JSON.stringify({ version: '3.0', texts }, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify({ version: '2.0.1', texts }, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = `copyload_backup_${new Date().toISOString().slice(0, 10)}.json`;
