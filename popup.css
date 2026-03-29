@@ -35,9 +35,10 @@
     --text-secondary: #CBD5E1;
     --text-muted: #64748B;
     --border-color: #475569;
+    --primary-light: rgba(34, 197, 94, 0.15);
+    --gold-light: rgba(245, 158, 11, 0.15);
 }
 
-/* Critical: Rounded popup corners fix */
 html,
 body {
     width: 380px;
@@ -52,7 +53,6 @@ body {
     color: var(--text);
     line-height: 1.5;
     background: var(--bg);
-    border-radius: var(--radius);
 }
 
 /* Main container */
@@ -506,9 +506,11 @@ body {
     font-size: 9px;
     padding: 2px 6px;
     background: var(--gold-light);
-    color: #B45309;
+    color: var(--gold);
     border-radius: 6px;
     font-weight: 700;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
 }
 
 .text-actions {
@@ -596,31 +598,48 @@ body {
 .img-btn {
     width: 32px;
     height: 32px;
-    background: white;
-    border: none;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(4px);
+    border: 1.5px solid rgba(255, 255, 255, 0.3);
     border-radius: var(--radius-xs);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--text);
+    color: white;
     transition: all 0.15s ease;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .img-btn:hover {
     background: var(--primary);
+    border-color: var(--primary);
     color: white;
     transform: scale(1.1);
 }
 
 .img-btn.danger:hover {
     background: var(--danger);
+    border-color: var(--danger);
 }
 
 .img-btn svg {
     width: 15px;
     height: 15px;
+}
+
+/* Image Temp Tag */
+.img-temp-tag {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    font-size: 8px;
+    padding: 2px 5px;
+    background: rgba(245, 158, 11, 0.85);
+    color: white;
+    border-radius: 4px;
+    font-weight: 800;
+    z-index: 5;
+    letter-spacing: 0.5px;
 }
 
 /* Empty State */

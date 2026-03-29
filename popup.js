@@ -6,6 +6,7 @@ let currentLang = 'vi';
 let isPremiumUser = false;
 let contextImageId = null;
 let activeObjectURLs = [];
+let enablePersistent = true;
 
 // Complete i18n
 const i18n = {
@@ -74,6 +75,7 @@ async function loadSettings() {
     currentTheme = settings.theme || 'light';
     currentLang = settings.language || 'vi';
     isPremiumUser = await DB.isPremium();
+    enablePersistent = settings.enablePersistent !== false;
 
     applyTheme();
     applyLang();
@@ -157,7 +159,10 @@ function setupListeners() {
         els.togglePersistent.onclick = async () => {
             const isActive = !els.togglePersistent.classList.contains('active');
             els.togglePersistent.classList.toggle('active', isActive);
+            enablePersistent = isActive;
             await DB.setSetting('enablePersistent', isActive);
+            // Re-render to show/hide temp tags
+            await loadData();
         };
     }
 
@@ -226,7 +231,7 @@ async function loadData() {
 // Load texts
 async function loadTexts() {
     try {
-        const q = els.searchInput?.value?.toLowerCase() || '';
+        const q = els.searchInput?.value?.trim() || '';
         let texts = q ? await DB.searchTexts(q) : await DB.getAllTexts();
         const count = await DB.getTextCount();
         if (els.textCount) els.textCount.textContent = count;
@@ -245,18 +250,20 @@ function renderTexts(texts) {
         return;
     }
 
-    els.textList.innerHTML = texts.map(text => `
+    els.textList.innerHTML = texts.map(text => {
+        const tempBadge = !enablePersistent ? '<span class="temp-tag">TEMP</span>' : '';
+        return `
         <div class="text-item" data-id="${text.id}">
             <div class="text-content">
                 <div class="text-line">${escapeHtml(text.content)}</div>
-                <div class="text-time">${formatTime(text.savedAt)}</div>
+                <div class="text-time">${formatTime(text.savedAt)} ${tempBadge}</div>
             </div>
             <div class="text-actions">
                 <button class="btn-sm btn-copy" title="${t.copy}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
                 <button class="btn-sm btn-delete" title="${t.delete}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button>
             </div>
-        </div>
-    `).join('');
+        </div>`;
+    }).join('');
 
     // Event delegation
     els.textList.onclick = async e => {
@@ -305,8 +312,10 @@ function renderImages(images) {
     els.imageGrid.innerHTML = images.map(img => {
         const src = img.thumbnail ? URL.createObjectURL(img.thumbnail) : URL.createObjectURL(img.blob);
         activeObjectURLs.push(src);
+        const tempBadge = !enablePersistent ? '<span class="img-temp-tag">TEMP</span>' : '';
         return `<div class="image-item" data-id="${img.id}">
             <img src="${src}" alt="">
+            ${tempBadge}
             <div class="image-overlay">
                 <button class="img-btn" data-action="copy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
                 <button class="img-btn" data-action="download"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
@@ -472,12 +481,13 @@ async function updateStorage() {
         const pct = Math.min(info.percent, 100);
 
         if (els.storageFill) {
-            els.storageFill.style.width = `${pct}%`;
+            els.storageFill.style.width = info.isPremium ? '0%' : `${pct}%`;
             els.storageFill.className = 'storage-fill' + (pct > 90 ? ' danger' : pct > 70 ? ' warning' : '');
         }
 
         if (els.storageText) {
-            els.storageText.textContent = info.isPremium ? '∞' : `${formatBytes(info.used)}`;
+            // Always show storage used for both free and pro
+            els.storageText.textContent = formatBytes(info.used);
         }
     } catch (e) {
         console.error('Storage update error:', e);

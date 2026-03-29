@@ -193,14 +193,22 @@ async function getTextCount() {
 
 async function searchTexts(query) {
     await initDB();
-    const q = query.toLowerCase();
+    const q = query.toLowerCase().trim();
+    if (!q) return getAllTexts();
+
+    // Split query into words for flexible matching
+    // e.g. "giá dầu" matches "Bảng giá xăng dầu"
+    const words = q.split(/\s+/).filter(w => w.length > 0);
     const results = [];
     return new Promise(resolve => {
         const req = getStore('texts').openCursor(null, 'prev');
         req.onsuccess = e => {
             const c = e.target.result;
             if (c) {
-                if (c.value.content.toLowerCase().includes(q)) results.push(c.value);
+                const content = c.value.content.toLowerCase();
+                // Match if ALL words are found anywhere in the content
+                const matches = words.every(word => content.includes(word));
+                if (matches) results.push(c.value);
                 c.continue();
             } else resolve(results);
         };
