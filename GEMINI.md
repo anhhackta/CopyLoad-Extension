@@ -4,16 +4,18 @@
 Chrome/Edge extension (Manifest V3) that saves copy history. Vanilla JS + HTML + CSS only. No build step, no frameworks, no npm dependencies unless I approve.
 
 ## Architecture (do not mix responsibilities)
-- `background.js`: service worker. Context menu, storage writes, message handling. Stateless: never keep data in global variables (worker can be killed anytime).
-- `content.js`: only listens to the `copy` event and sends messages. No UI, no storage logic.
-- `popup.*`: UI only. Reads/writes via storage or messages, never touches page DOM.
-- Shared constants (storage keys, message types, limits) in one `constants.js`. No magic strings.
+- `src/background/background.js`: service worker. Context menu, DB writes, message handling, auto-cleanup. Stateless: never keep data in global variables (worker can be killed anytime).
+- `src/content/content.js`: only listens to copy/cut/paste/keydown and sends typed messages. `picker.js` is the Paste Multi box (Shadow DOM, no storage logic).
+- `src/app/*`: popup + manager UI (one codebase, `data-view="popup|manager"`). UI only, never touches page DOM.
+- `src/shared/*`: `constants.js` (storage keys, message types, limits, settings schema), `i18n.js`, `db.js`, `settings.js`, `lock.js`, `crypto.js`, `temp.js`, `classify.js`. No magic strings elsewhere.
 
 ## Storage
-- Permanent → `chrome.storage.local`. Temporary → `chrome.storage.session`. Entry shape: `{ id, text, createdAt, temp }`.
-- Changing the data shape requires a migration step and my confirmation (users have saved data).
-- "Delete all" always needs a confirm step. Never auto-clear data.
-- Unlimited history: render lists lazily/limited (e.g. paginate or virtualize) to avoid popup lag.
+- Clipboard data (text + images) → IndexedDB (`CopyLoadDB`). Records: texts `{ id, content, hash, savedAt, kind, pinned? }`, images `{ id, blob, thumbnail, savedAt, size, type, pinned? }`.
+- Settings: `chrome.storage.sync` for preferences (theme, language, paste mode/count); `chrome.storage.local` for device switches, PIN config, timestamps. Temporary entries (`temp: true`) → `chrome.storage.session`.
+- Changing the data shape requires a migration step and my confirmation (users have saved data). Adding optional fields is fine if old records stay valid.
+- "Delete all" always needs a confirm step. Never auto-clear data, except the opt-in "auto-delete old items" setting (pinned items are always kept).
+- Unlimited history: render lists lazily/limited (cursor paging) to avoid popup lag.
+- PIN lock is a UI privacy screen (PBKDF2 hash in `storage.local`); IndexedDB itself is not encrypted. Exports can be AES-GCM encrypted with a password.
 
 ## Privacy & Permissions
 - Clipboard data never leaves the device: no network requests, no analytics, no remote scripts.

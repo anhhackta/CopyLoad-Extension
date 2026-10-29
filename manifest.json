@@ -2,33 +2,36 @@
   "manifest_version": 3,
   "name": "CopyLoad",
   "version": "2.0.1",
-  "description": "Quản lý clipboard mạnh mẽ - Lưu text và ảnh không giới hạn với IndexedDB",
+  "description": "Clipboard history manager: save text and images, search, pin, paste from history, PIN lock.",
   "permissions": [
     "storage",
     "contextMenus",
     "clipboardRead",
-    "clipboardWrite",
-    "activeTab"
+    "clipboardWrite"
   ],
   "host_permissions": [
     "<all_urls>"
   ],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "src/background/background.js"
   },
   "content_scripts": [
     {
-      "matches": [
-        "<all_urls>"
-      ],
+      "matches": ["<all_urls>"],
+      "all_frames": true,
+      "run_at": "document_start",
       "js": [
-        "content.js"
-      ],
-      "run_at": "document_start"
+        "src/shared/constants.js",
+        "src/shared/i18n.js",
+        "src/shared/settings.js",
+        "src/content/picker.js",
+        "src/content/content.js"
+      ]
     }
   ],
   "action": {
-    "default_popup": "popup.html",
+    "default_title": "CopyLoad",
+    "default_popup": "src/app/popup.html",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",

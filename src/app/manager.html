@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="CopyLoad - clipboard history manager">
+  <title>CopyLoad - Manager</title>
+  <link rel="stylesheet" href="app.css">
+</head>
+
+<body data-view="manager">
+  <div class="app" id="app">
+    <header class="topbar">
+      <div class="brand">
+        <img class="brand-logo" src="../../icons/icon48.png" alt="">
+        <h1 class="brand-name">CopyLoad</h1>
+      </div>
+      <div class="topbar-actions">
+        <button class="icon-btn" id="lockNowBtn" type="button" hidden data-i18n-title="lockNow" data-icon="lock"></button>
+        <button class="icon-btn" id="openManagerBtn" type="button" data-i18n-title="openManager" data-icon="external"></button>
+      </div>
+    </header>
+
+    <nav class="nav" id="nav">
+      <button class="nav-item active" type="button" data-nav="texts"><span data-icon="text"></span><span data-i18n="navTexts"></span></button>
+      <button class="nav-item" type="button" data-nav="images"><span data-icon="image"></span><span data-i18n="navImages"></span></button>
+      <button class="nav-item" type="button" data-nav="data"><span data-icon="database"></span><span data-i18n="navData"></span></button>
+      <button class="nav-item" type="button" data-nav="settings"><span data-icon="sliders"></span><span data-i18n="navSettings"></span></button>
+    </nav>
+
+    <main class="content">
+      <!-- TEXTS -->
+      <section class="view active" id="view-texts">
+        <div class="toolbar">
+          <label class="search-box">
+            <span data-icon="search"></span>
+            <input id="searchInput" type="search" autocomplete="off" data-i18n-placeholder="searchPlaceholder">
+          </label>
+          <button class="btn" id="textSelectBtn" type="button" data-i18n="select"></button>
+        </div>
+        <div class="chips" id="kindChips" role="group"></div>
+        <div class="bulkbar" id="textBulkBar" hidden>
+          <span class="bulk-count" id="textBulkCount"></span>
+          <div class="bulk-actions">
+            <button class="btn btn-sm" id="textBulkAll" type="button" data-i18n="selectAll"></button>
+            <button class="icon-btn" id="textBulkPin" type="button" data-i18n-title="pin" data-icon="pin"></button>
+            <button class="icon-btn" id="textBulkUnpin" type="button" data-i18n-title="unpin" data-icon="pinOff"></button>
+            <button class="icon-btn danger" id="textBulkDelete" type="button" data-i18n-title="delete" data-icon="trash"></button>
+            <button class="btn btn-sm btn-ghost" id="textBulkCancel" type="button" data-i18n="cancel"></button>
+          </div>
+        </div>
+        <div class="scroll" id="textScroll">
+          <div id="pinnedSection" hidden>
+            <h2 class="section-title"><span data-i18n="sectionPinned"></span><span class="count" id="pinnedCount"></span></h2>
+            <ul class="card-list" id="pinnedList"></ul>
+          </div>
+          <h2 class="section-title" id="recentTitle" data-i18n="sectionRecent" hidden></h2>
+          <ul class="card-list" id="textList"></ul>
+          <div class="sentinel" id="textSentinel"></div>
+          <div class="empty" id="textEmpty" hidden>
+            <p class="empty-title" id="textEmptyTitle"></p>
+            <p class="empty-hint" id="textEmptyHint"></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- IMAGES -->
+      <section class="view" id="view-images">
+        <div class="toolbar">
+          <button class="btn btn-primary grow" id="pasteImageBtn" type="button">
+            <span data-icon="clipboardImage"></span><span data-i18n="pasteImage"></span>
+          </button>
+          <button class="btn" id="imageSelectBtn" type="button" data-i18n="select"></button>
+        </div>
+        <div class="bulkbar" id="imageBulkBar" hidden>
+          <span class="bulk-count" id="imageBulkCount"></span>
+          <div class="bulk-actions">
+            <button class="btn btn-sm" id="imageBulkAll" type="button" data-i18n="selectAll"></button>
+            <button class="icon-btn" id="imageBulkPin" type="button" data-i18n-title="pin" data-icon="pin"></button>
+            <button class="icon-btn" id="imageBulkUnpin" type="button" data-i18n-title="unpin" data-icon="pinOff"></button>
+            <button class="icon-btn danger" id="imageBulkDelete" type="button" data-i18n-title="delete" data-icon="trash"></button>
+            <button class="btn btn-sm btn-ghost" id="imageBulkCancel" type="button" data-i18n="cancel"></button>
+          </div>
+        </div>
+        <div class="scroll" id="imageScroll">
+          <div id="pinnedImageSection" hidden>
+            <h2 class="section-title"><span data-i18n="sectionPinned"></span></h2>
+            <div class="image-grid" id="pinnedImageGrid"></div>
+          </div>
+          <h2 class="section-title" id="recentImageTitle" data-i18n="sectionRecent" hidden></h2>
+          <div class="image-grid" id="imageGrid"></div>
+          <div class="sentinel" id="imageSentinel"></div>
+          <div class="empty" id="imageEmpty" hidden>
+            <p class="empty-title" data-i18n="emptyImages"></p>
+            <p class="empty-hint" data-i18n="emptyImagesHint"></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- DATA -->
+      <section class="view" id="view-data">
+        <div class="scroll pad">
+          <p class="summary" id="storageSummary"></p>
+
+          <div class="panel">
+            <h2 data-i18n="exportTitle"></h2>
+            <p class="panel-desc" data-i18n="exportDesc"></p>
+            <label class="check-row"><input type="checkbox" id="exportImages" checked><span data-i18n="exportIncludeImages"></span></label>
+            <label class="check-row"><input type="checkbox" id="exportEncrypt"><span data-i18n="exportEncrypt"></span></label>
+            <div class="stack" id="exportPasswordBox" hidden>
+              <input class="input" type="password" id="exportPassword" autocomplete="new-password" data-i18n-placeholder="exportPassword" data-i18n-vars='{"n":6}'>
+              <input class="input" type="password" id="exportPasswordConfirm" autocomplete="new-password" data-i18n-placeholder="exportPasswordConfirm">
+              <p class="hint warn" data-i18n="exportPasswordWarning"></p>
+            </div>
+            <div class="button-row">
+              <button class="btn btn-primary" id="exportBtn" type="button"><span data-icon="download"></span><span data-i18n="exportButton"></span></button>
+              <button class="btn" id="exportTxtBtn" type="button" data-i18n="exportTxtButton"></button>
+            </div>
+            <p class="hint" data-i18n="exportTxtWarning"></p>
+          </div>
+
+          <div class="panel">
+            <h2 data-i18n="importTitle"></h2>
+            <p class="panel-desc" data-i18n="importDesc"></p>
+            <div class="button-row">
+              <button class="btn" id="importBtn" type="button"><span data-icon="upload"></span><span data-i18n="importButton"></span></button>
+            </div>
+            <input type="file" id="importFile" accept=".json,.txt,application/json,text/plain" hidden>
+          </div>
+
+          <div class="panel">
+            <h2 data-i18n="cleanupTitle"></h2>
+            <p class="panel-desc" data-i18n="cleanupDesc"></p>
+            <div class="inline-row">
+              <span data-i18n="cleanupOlderThan"></span>
+              <select class="select" id="cleanupDays"></select>
+              <button class="btn" id="cleanupBtn" type="button" data-i18n="cleanupButton"></button>
+            </div>
+          </div>
+
+          <div class="panel panel-danger">
+            <h2 data-i18n="dangerTitle"></h2>
+            <p class="panel-desc" data-i18n="dangerDesc"></p>
+            <label class="check-row"><input type="checkbox" id="clearKeepPinned" checked><span data-i18n="keepPinnedOption"></span></label>
+            <div class="button-row">
+              <button class="btn btn-danger" id="clearAllBtn" type="button" data-i18n="clearAllButton"></button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SETTINGS -->
+      <section class="view" id="view-settings">
+        <div class="scroll pad">
+          <div class="panel">
+            <h2 data-i18n="settingsGeneral"></h2>
+            <div class="setting-row">
+              <div class="setting-label"><span data-i18n="language"></span></div>
+              <select class="select" id="language">
+                <option value="vi">Tiếng Việt</option>
+                <option value="en">English</option>
+              </select>
+            </div>
+            <div class="setting-row">
+              <div class="setting-label"><span data-i18n="theme"></span></div>
+              <select class="select" id="theme">
+                <option value="dark" data-i18n="themeDark"></option>
+                <option value="light" data-i18n="themeLight"></option>
+                <option value="system" data-i18n="themeSystem"></option>
+              </select>
+            </div>
+          </div>
+
+          <div class="panel">
+            <h2 data-i18n="settingsCapture"></h2>
+            <div class="setting-row">
+              <div class="setting-label"><span data-i18n="saveOnCopy"></span><small data-i18n="saveOnCopyHint"></small></div>
+              <label class="switch"><input type="checkbox" id="enableCtrlC"><span class="switch-track"></span></label>
+            </div>
+            <div class="setting-row">
+              <div class="setting-label"><span data-i18n="savePersistent"></span><small data-i18n="savePersistentHint"></small></div>
+              <label class="switch"><input type="checkbox" id="enablePersistent"><span class="switch-track"></span></label>
+            </div>
+            <div class="setting-row">
+              <div class="setting-label"><span data-i18n="autoDelete"></span><small data-i18n="autoDeleteHint"></small></div>
+              <select class="select" id="autoDeleteDays"></select>
+            </div>
+          </div>
+
+          <div class="panel">
+            <h2 data-i18n="settingsPasteMulti"></h2>
+            <div class="setting-row">
+              <div class="setting-label"><span data-i18n="pasteMulti"></span><small data-i18n="pasteMultiHint"></small></div>
+              <label class="switch"><input type="checkbox" id="enablePasteMulti"><span class="switch-track"></span></label>
+            </div>
+            <div class="setting-row" data-requires="enablePasteMulti">
+              <div class="setting-label"><span data-i18n="pasteMode"></span></div>
+              <select class="select" id="pasteMode">
+                <option value="box" data-i18n="pasteModeBox"></option>
+                <option value="quick" data-i18n="pasteModeQuick"></option>
+              </select>
+            </div>
+            <div class="setting-row" data-requires="enablePasteMulti">
+              <div class="setting-label"><span data-i18n="pasteCount"></span></div>
+              <select class="select" id="pasteCount">
+                <option value="5">5</option>
+                <option value="7">7</option>
+                <option value="10">10</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="panel">
+            <h2 data-i18n="settingsSecurity"></h2>
+            <div class="setting-row">
+              <div class="setting-label"><span data-i18n="pinLock"></span><small data-i18n="pinLockHint"></small></div>
+              <label class="switch"><input type="checkbox" id="pinLockToggle"><span class="switch-track"></span></label>
+            </div>
+            <div class="setting-row" data-requires="pinLockToggle">
+              <div class="setting-label"><span data-i18n="lockTimeout"></span><small data-i18n="lockTimeoutHint"></small></div>
+              <select class="select" id="lockTimeoutMin"></select>
+            </div>
+            <div class="setting-row" data-requires="pinLockToggle">
+              <div class="setting-label"><span data-i18n="pinChange"></span></div>
+              <button class="btn btn-sm" id="pinChangeBtn" type="button" data-i18n="pinChange"></button>
+            </div>
+          </div>
+
+          <div class="panel about">
+            <h2 data-i18n="settingsAbout"></h2>
+            <p class="panel-desc" id="versionText"></p>
+            <div class="link-row">
+              <a href="https://github.com/anhhackta/" target="_blank" rel="noopener"><span data-i18n="author"></span>: @anhhackta</a>
+              <a href="https://www.buymeacoffee.com/anhhackta" target="_blank" rel="noopener" data-i18n="donate"></a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="lock-screen" id="lockScreen" hidden>
+    <div class="pinpad">
+      <img class="pin-logo" src="../../icons/icon48.png" alt="">
+      <h2 class="pin-title" id="pinTitle"></h2>
+      <div class="pin-dots" id="pinDots" aria-hidden="true"></div>
+      <p class="pin-message" id="pinMessage" role="alert"></p>
+      <div class="pin-keys" id="pinKeys"></div>
+      <div class="pin-links">
+        <button class="link-btn" id="pinForgotBtn" type="button" data-i18n="pinForgot"></button>
+        <button class="link-btn" id="pinCancelBtn" type="button" data-i18n="cancel" hidden></button>
+      </div>
+    </div>
+  </div>
+
+  <div id="dialogRoot"></div>
+  <div class="toast-root" id="toastRoot" aria-live="polite"></div>
+
+  <script src="../shared/constants.js"></script>
+  <script src="../shared/i18n.js"></script>
+  <script src="../shared/classify.js"></script>
+  <script src="../shared/settings.js"></script>
+  <script src="../shared/db.js"></script>
+  <script src="../shared/crypto.js"></script>
+  <script src="../shared/lock.js"></script>
+  <script src="../shared/temp.js"></script>
+  <script src="ui.js"></script>
+  <script src="lock-ui.js"></script>
+  <script src="texts-view.js"></script>
+  <script src="images-view.js"></script>
+  <script src="data-view.js"></script>
+  <script src="settings-view.js"></script>
+  <script src="app.js"></script>
+</body>
+
+</html>
