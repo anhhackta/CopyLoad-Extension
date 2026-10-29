@@ -2,60 +2,71 @@
 
 <div align="center">
   <img src="icons/icon128.png" alt="CopyLoad ロゴ" width="128" height="128">
-  <h3>クリップボード履歴 — テキスト＆画像</h3>
-  <p>Chrome/Edge 拡張機能（Manifest V3）。データは端末内のみ。サーバーへ送信しません。</p>
+  <h3>Chrome / Edge 向けクリップボード履歴</h3>
+  <p>コピーしたテキストと画像を端末内に保存。検索・ピン留め・履歴からの貼り付け・PIN ロックに対応。サーバーへは送信しません。</p>
 
-  [![Version](https://img.shields.io/badge/version-1.0.2-blue.svg)](https://github.com/anhhackta/CopyLoad-Extension/releases)
-  [![ライセンス](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-  [![言語](https://img.shields.io/badge/VI-red.svg)](README.md)
-  [![言語](https://img.shields.io/badge/EN-blue.svg)](README_EN.md)
-  [![言語](https://img.shields.io/badge/JP-orange.svg)](README_JP.md)
+  [![Version](https://img.shields.io/badge/version-1.0.2-blue.svg)](https://github.com/anhhackta/CopyLoad-Extension/releases/latest)
+  [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+  [![Manifest](https://img.shields.io/badge/Manifest-V3-orange.svg)](manifest.json)
 </div>
 
 <p align="center">
-  <a href="README.md">Tiếng Việt</a> · <a href="README_EN.md">English</a> · <b>日本語</b>
+  <a href="README.md">English</a>
+  · <a href="README_VN.md">Tiếng Việt</a>
+  · <a href="README_ZH.md">中文</a>
+  · <b>日本語</b>
   · <a href="https://anhhackta.github.io/CopyLoad-Extension/">Website</a>
   · <a href="https://github.com/anhhackta/CopyLoad-Extension/releases">Releases</a>
 </p>
 
 ---
 
-## 機能（v1.0.2）
+## CopyLoad とは
 
-- **テキスト保存**: Ctrl+C / 切り取り / 貼り付けで自動保存、または右クリック → *CopyLoad に保存*
-- **画像保存**: 右クリック → *画像を CopyLoad に保存*、またはポップアップからクリップボード画像を貼り付け
-- **分類＆ピン**: text / link / email / 数字 / code；重要項目をピン留め
-- **一時／永続**: 「永続保存」オフでセッション限りのテキスト（画像も保存されない）
-- **Paste Multi**: 入力欄で Ctrl+V すると履歴から選択（候補ボックス、または 1–0 のクイックモード）
-- **PIN ロック**: 4〜6桁の PIN でポップアップ／管理画面／Paste Multi を保護
-- **データ**: JSON の書き出し／読み込み（任意でパスワード暗号化）、.txt 書き出し、古い項目の自動削除、一括削除
-- **UI**: ライト／ダーク／システム；ベトナム語＆英語；ポップアップ＋フル管理ページ
-- **ストレージ**: 履歴は IndexedDB；設定は sync/local；分析なし・通信なし
+ブラウザはコピー内容を長く覚えません。CopyLoad はテキストと画像の履歴を**ローカル**に残し、検索・ピン留め・再貼り付けを可能にします。クリップボードをサーバーへ送りません。
+
+**現行ライン：** `v1.0.2`（ブランチ `main`、長期更新）。  
+**初回公開版：** [`Ver1.1.1`](https://github.com/anhhackta/CopyLoad-Extension/releases/tag/Ver1.1.1)（ブランチ `legacy-old`、テキストのみ・旧アーキテクチャ）。
 
 ---
 
-## ZIP からインストール
+## 機能
 
-1. [Releases](https://github.com/anhhackta/CopyLoad-Extension/releases/latest) から最新版をダウンロード
-2. ZIP を解凍
-3. `chrome://extensions`（または `edge://extensions`）を開く
+| 区分 | 内容 |
+|------|------|
+| **取得** | Ctrl+C / 切り取り / 貼り付けで自動保存（切替可）；右クリック → *CopyLoad に保存* / *画像を CopyLoad に保存* |
+| **テキスト** | 検索、分類（text / link / email / 数字 / code）、ピン、一括選択、一時 / 永続 |
+| **画像** | 右クリック保存またはシステムクリップボードから貼り付け；サムネイル；ピン / 削除 |
+| **Paste Multi** | 入力欄で Ctrl+V すると履歴ピッカー（候補ボックスまたは `1`–`0`）；通常貼り付けは Ctrl+Shift+V |
+| **セキュリティ** | 任意の 4〜6 桁 PIN；ポップアップ / 管理画面 / Paste Multi；タイムアウトで自動ロック |
+| **データ** | JSON の書き出し / 読み込み（任意でパスワード暗号化）、`.txt` 書き出し、古い項目の自動削除、全削除 |
+| **UI** | ライト / ダーク / システム；アプリ内はベトナム語・英語；ポップアップ＋管理ページ |
+| **保存** | 履歴は IndexedDB；設定は `chrome.storage`；分析なし・クリップボード用の通信なし |
+
+---
+
+## インストール（ZIP / パッケージ化されていない拡張機能）
+
+1. [Releases](https://github.com/anhhackta/CopyLoad-Extension/releases/latest) から **Latest**（`CopyLoad-1.0.2.zip`）をダウンロード
+2. 解凍（フォルダ構成を維持）
+3. `chrome://extensions` または `edge://extensions` を開く
 4. **デベロッパーモード**をオン
 5. **パッケージ化されていない拡張機能を読み込む** → `manifest.json` があるフォルダを選択
 
-> まだ Chrome ウェブストア / Edge アドオンには未公開です。
+> Chrome ウェブストア / Edge アドオンには未公開です。
 
 ---
 
-## 使い方（短縮）
+## クイックスタート
 
 | 操作 | 方法 |
 |------|------|
-| テキスト保存 | Ctrl+C（設定で有効時）または右クリック |
+| テキスト保存 | Ctrl+C（有効時）または右クリック → CopyLoad に保存 |
 | 画像保存 | 画像を右クリック、または「画像」タブ → 貼り付け |
-| 履歴から貼り付け | Paste Multi をオン → 入力欄で Ctrl+V |
+| 履歴から貼り付け | Paste Multi をオン → 入力欄で Ctrl+V → 選択 |
 | 通常の貼り付け | Ctrl+Shift+V または右クリックの貼り付け |
-| 管理画面 | ポップアップの「管理を開く」 |
-| ロック | 設定で PIN を有効化 |
+| 管理画面 | ポップアップ見出しの外部リンクボタン |
+| ロック | 設定 → PIN を有効化 |
 
 ---
 
@@ -66,22 +77,25 @@ CopyLoad/
 ├── manifest.json
 ├── icons/
 ├── src/
-│   ├── background/     # service worker
-│   ├── content/        # コピー／貼り付け + Paste Multi
-│   ├── app/            # ポップアップ + 管理 UI
-│   └── shared/         # constants, i18n, db, settings, lock, crypto
-├── index.html          # ランディング（GitHub Pages）
-├── README.md / README_EN.md / README_JP.md
-└── LICENSE             # MIT
+│   ├── background/   # service worker
+│   ├── content/      # コピー／貼り付け + Paste Multi
+│   ├── app/          # ポップアップ + 管理 UI
+│   └── shared/       # constants, i18n, db, settings, lock, crypto
+├── index.html
+├── README.md         # English
+├── README_VN.md
+├── README_ZH.md
+├── README_JP.md      # 日本語（このファイル）
+└── LICENSE           # MIT
 ```
-
-`legacy-old` ブランチには初期公開版（v1.1.1・テキストのみ・旧アーキテクチャ）があります。
 
 ---
 
 ## プライバシー
 
-クリップボードデータは端末内のみ（IndexedDB / `chrome.storage`）。外部送信なし。PIN は UI ロック（PBKDF2）で、IndexedDB 全体は暗号化しません。書き出しファイルはパスワード指定時に AES-GCM で暗号化できます。
+- クリップボードデータは端末内のみ（IndexedDB / `chrome.storage`）。
+- テレメトリ・広告・クラウド同期なし。
+- PIN は UI ロック（PBKDF2）。IndexedDB 全体は暗号化しません。書き出し JSON はパスワード指定時に AES-GCM 可能です。
 
 ---
 
@@ -96,5 +110,5 @@ CopyLoad/
 **Nguyễn Bá Hoàng** ([@anhhackta](https://github.com/anhhackta))
 
 - Website: [anhhackta.com](https://anhhackta.com) · [GitHub Pages](https://anhhackta.github.io/CopyLoad-Extension/)
-- Facebook: [@anhhackta.official](https://facebook.com/anhhackta.official)
+- Facebook: [anhhackta.official](https://facebook.com/anhhackta.official)
 - Support: [Buy Me a Coffee](https://www.buymeacoffee.com/anhhackta)

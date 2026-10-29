@@ -1,18 +1,22 @@
 <!DOCTYPE html>
-<html lang="vi" data-theme="dark">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>CopyLoad — Clipboard history for Chrome & Edge</title>
-  <meta name="description" content="CopyLoad lưu lịch sử clipboard (văn bản & ảnh) trên máy bạn. Paste Multi, PIN lock, xuất/nhập dữ liệu. Chrome & Edge.">
+  <title>CopyLoad — Clipboard history for Chrome &amp; Edge</title>
+  <meta name="description" content="CopyLoad keeps text and image clipboard history on your device. Paste Multi, pin, PIN lock, export/import. Chrome &amp; Edge extension (Manifest V3).">
   <link rel="icon" href="icons/icon128.png">
-  <meta property="og:title" content="CopyLoad — Clipboard Manager">
-  <meta property="og:description" content="Lịch sử clipboard thông minh: text + ảnh, Paste Multi, PIN. Dữ liệu chỉ lưu local.">
-  <meta property="og:image" content="icons/logo.png">
+  <link rel="canonical" href="https://anhhackta.github.io/CopyLoad-Extension/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="CopyLoad — Clipboard history manager">
+  <meta property="og:description" content="Local clipboard history for text &amp; images. Paste Multi, PIN lock, encrypted export. Chrome &amp; Edge.">
+  <meta property="og:image" content="https://anhhackta.github.io/CopyLoad-Extension/icons/logo.png">
+  <meta property="og:url" content="https://anhhackta.github.io/CopyLoad-Extension/">
+  <meta name="twitter:card" content="summary">
   <meta name="theme-color" content="#14171c">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root, :root[data-theme="dark"] {
       --bg: #14171c;
@@ -28,6 +32,10 @@
       --on-accent: #101217;
       --c-link: #6cb6ff;
       --c-email: #56d4bc;
+      --c-warn: #e3b341;
+      --danger: #f47067;
+      --glow: rgba(139, 140, 246, 0.22);
+      --glow2: rgba(86, 212, 188, 0.12);
       --shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
       color-scheme: dark;
     }
@@ -45,6 +53,10 @@
       --on-accent: #ffffff;
       --c-link: #0969da;
       --c-email: #0e8a7d;
+      --c-warn: #9a6700;
+      --danger: #cf222e;
+      --glow: rgba(79, 70, 229, 0.14);
+      --glow2: rgba(14, 138, 125, 0.1);
       --shadow: 0 24px 64px rgba(27, 31, 36, 0.12);
       color-scheme: light;
     }
@@ -54,141 +66,207 @@
     body {
       margin: 0;
       min-height: 100vh;
-      font: 400 17px/1.55 "Source Sans 3", system-ui, sans-serif;
+      font: 400 16.5px/1.55 "Source Sans 3", system-ui, sans-serif;
       background: var(--bg);
       color: var(--text);
       -webkit-font-smoothing: antialiased;
     }
-    h1, h2, h3 { font-family: Outfit, system-ui, sans-serif; font-weight: 650; letter-spacing: -0.02em; margin: 0; }
+    h1, h2, h3 { font-family: Outfit, system-ui, sans-serif; font-weight: 700; letter-spacing: -0.02em; margin: 0; }
     p { margin: 0; }
     a { color: var(--c-link); text-decoration: none; }
     a:hover { text-decoration: underline; }
+    code {
+      font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+      font-size: 0.9em;
+      padding: 0.12em 0.4em;
+      border-radius: 6px;
+      background: var(--hover);
+      border: 1px solid var(--border);
+    }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
     .grain {
       pointer-events: none;
       position: fixed;
       inset: 0;
       z-index: 0;
-      opacity: 0.04;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      opacity: 0.035;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
     }
-
     .shell { position: relative; z-index: 1; }
 
+    .wrap {
+      width: min(1120px, calc(100% - 40px));
+      margin-inline: auto;
+    }
+
+    /* Top bar */
     .top {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      backdrop-filter: blur(14px);
+      background: color-mix(in srgb, var(--bg) 82%, transparent);
+      background: rgba(20, 23, 28, 0.82);
+      border-bottom: 1px solid var(--border);
+    }
+    :root[data-theme="light"] .top { background: rgba(244, 245, 247, 0.88); }
+    .top-inner {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      max-width: 1080px;
-      margin: 0 auto;
-      padding: 20px 24px;
+      gap: 16px;
+      padding: 12px 0;
     }
     .brand {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       color: inherit;
       text-decoration: none;
+      flex: none;
     }
     .brand:hover { text-decoration: none; }
     .brand img {
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
       box-shadow: 0 0 0 1px var(--border);
     }
     .brand-name {
       font-family: Outfit, sans-serif;
       font-weight: 700;
-      font-size: 1.15rem;
+      font-size: 1.05rem;
       letter-spacing: -0.03em;
     }
-    .top-actions { display: flex; gap: 8px; }
-    .icon-btn {
-      width: 40px;
-      height: 40px;
+    .nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 14px;
+      justify-content: center;
+    }
+    .nav a {
+      color: var(--muted);
+      font: 600 13px Outfit, sans-serif;
+      text-decoration: none;
+    }
+    .nav a:hover { color: var(--text); }
+    .top-actions { display: flex; align-items: center; gap: 8px; flex: none; }
+    .icon-btn, .lang-select {
+      height: 38px;
       border-radius: 10px;
       border: 1px solid var(--border);
       background: var(--surface);
       color: var(--text);
-      cursor: pointer;
       font: 600 13px Outfit, sans-serif;
+      cursor: pointer;
       transition: background 0.15s, border-color 0.15s;
     }
-    .icon-btn:hover { background: var(--hover); border-color: var(--accent-line); }
+    .icon-btn { width: 38px; }
+    .lang-select { padding: 0 10px; min-width: 72px; }
+    .icon-btn:hover, .lang-select:hover { background: var(--hover); border-color: var(--accent-line); }
 
-    /* Hero — one composition, brand-first */
+    /* Hero */
     .hero {
       position: relative;
-      min-height: calc(100vh - 80px);
-      display: grid;
-      align-items: end;
-      overflow: hidden;
       isolation: isolate;
+      padding: 56px 0 72px;
+      overflow: hidden;
     }
     .hero-bg {
       position: absolute;
       inset: 0;
       z-index: -1;
       background:
-        radial-gradient(900px 480px at 12% 18%, color-mix(in srgb, var(--accent) 28%, transparent), transparent 62%),
-        radial-gradient(700px 420px at 88% 8%, color-mix(in srgb, var(--c-email) 16%, transparent), transparent 55%),
-        linear-gradient(180deg, var(--bg-deep) 0%, var(--bg) 55%, var(--bg) 100%);
+        radial-gradient(900px 480px at 8% 10%, var(--glow), transparent 60%),
+        radial-gradient(700px 420px at 92% 0%, var(--glow2), transparent 55%),
+        linear-gradient(180deg, var(--bg-deep) 0%, var(--bg) 58%, var(--bg) 100%);
     }
-    .hero-inner {
-      max-width: 1080px;
-      width: 100%;
-      margin: 0 auto;
-      padding: 48px 24px 72px;
+    .hero-grid {
       display: grid;
-      gap: 28px;
-      justify-items: start;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 40px;
+      align-items: center;
     }
-    .hero-mark {
+    .hero-copy { display: grid; gap: 18px; justify-items: start; }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+      font: 600 12px Outfit, sans-serif;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      animation: rise 0.65s ease both;
+    }
+    .eyebrow i {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--c-email);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--c-email) 25%, transparent);
+      box-shadow: 0 0 0 4px rgba(86, 212, 188, 0.22);
+    }
+    .hero-brand {
       display: flex;
       align-items: center;
       gap: 16px;
-      animation: rise 0.7s ease both;
+      animation: rise 0.65s 0.05s ease both;
     }
-    .hero-mark img {
-      width: 88px;
-      height: 88px;
-      border-radius: 22px;
+    .hero-brand img {
+      width: 76px;
+      height: 76px;
+      border-radius: 20px;
       box-shadow: var(--shadow), 0 0 0 1px var(--border);
     }
-    .hero-brand {
+    .hero-brand strong {
+      display: block;
       font-family: Outfit, sans-serif;
-      font-size: clamp(2.6rem, 7vw, 4.4rem);
+      font-size: clamp(2.4rem, 5.5vw, 3.6rem);
       font-weight: 700;
       letter-spacing: -0.045em;
       line-height: 0.95;
     }
-    .hero-brand span {
-      display: block;
-      font-size: 0.28em;
-      font-weight: 600;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 8px;
-    }
     .hero h1 {
-      max-width: 16ch;
-      font-size: clamp(1.55rem, 3.4vw, 2.15rem);
-      line-height: 1.2;
-      animation: rise 0.7s 0.08s ease both;
+      max-width: 18ch;
+      font-size: clamp(1.45rem, 2.8vw, 1.95rem);
+      line-height: 1.25;
+      font-weight: 600;
+      animation: rise 0.65s 0.1s ease both;
     }
-    .hero .lead {
-      max-width: 42ch;
+    .lead {
+      max-width: 46ch;
       color: var(--muted);
-      font-size: 1.08rem;
-      animation: rise 0.7s 0.14s ease both;
+      font-size: 1.05rem;
+      animation: rise 0.65s 0.14s ease both;
     }
     .cta {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
-      animation: rise 0.7s 0.2s ease both;
+      animation: rise 0.65s 0.18s ease both;
+    }
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 16px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      animation: rise 0.65s 0.22s ease both;
+    }
+    .meta-row span::before {
+      content: "";
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      margin-right: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      vertical-align: middle;
     }
 
     .btn {
@@ -201,10 +279,10 @@
       border: 1px solid var(--border);
       background: var(--surface);
       color: var(--text);
-      font: 600 15px Outfit, sans-serif;
+      font: 600 14.5px Outfit, sans-serif;
       text-decoration: none;
       cursor: pointer;
-      transition: transform 0.15s, background 0.15s, border-color 0.15s;
+      transition: transform 0.15s, background 0.15s, border-color 0.15s, filter 0.15s;
     }
     .btn:hover { transform: translateY(-1px); text-decoration: none; background: var(--hover); }
     .btn:active { transform: none; }
@@ -216,19 +294,19 @@
     .btn-primary:hover { filter: brightness(1.06); background: var(--accent); }
     .btn-ghost { background: transparent; }
 
+    /* Mock UI */
+    .mock-wrap { animation: rise 0.75s 0.16s ease both; }
     .mock {
-      width: min(100%, 420px);
-      margin-top: 8px;
-      border-radius: 16px;
+      border-radius: 18px;
       border: 1px solid var(--border);
       background: var(--surface);
       box-shadow: var(--shadow);
       overflow: hidden;
-      animation: rise 0.8s 0.28s ease both;
     }
     .mock-bar {
       display: flex;
       align-items: center;
+      justify-content: space-between;
       gap: 10px;
       padding: 12px 14px;
       border-bottom: 1px solid var(--border);
@@ -236,86 +314,137 @@
       font-weight: 600;
       font-size: 14px;
     }
+    .mock-bar-left { display: flex; align-items: center; gap: 10px; }
     .mock-bar img { width: 22px; height: 22px; border-radius: 6px; }
+    .mock-tabs {
+      display: flex;
+      gap: 4px;
+      padding: 8px 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .mock-tab {
+      flex: 1;
+      text-align: center;
+      padding: 8px 6px;
+      border-radius: 8px 8px 0 0;
+      font: 600 12px Outfit, sans-serif;
+      color: var(--muted);
+    }
+    .mock-tab.on {
+      color: var(--text);
+      background: var(--hover);
+      box-shadow: inset 0 -2px 0 var(--accent);
+    }
     .mock-list { padding: 10px; display: grid; gap: 8px; }
     .mock-item {
-      padding: 10px 12px;
+      padding: 11px 12px;
       border-radius: 10px;
       background: var(--hover);
       border: 1px solid transparent;
       font-size: 13px;
       color: var(--muted);
     }
-    .mock-item strong { display: block; color: var(--text); font-weight: 600; margin-bottom: 2px; }
+    .mock-item strong { display: block; color: var(--text); font-weight: 600; margin-bottom: 2px; word-break: break-all; }
     .mock-item.pin { border-color: var(--accent-line); background: var(--accent-weak); }
     .chip {
       display: inline-block;
       margin-top: 4px;
+      margin-right: 4px;
       padding: 2px 7px;
       border-radius: 999px;
       font-size: 11px;
       font-weight: 600;
-      background: color-mix(in srgb, var(--c-link) 18%, transparent);
+      background: rgba(108, 182, 255, 0.16);
       color: var(--c-link);
     }
+    .chip.pin-chip { background: var(--accent-weak); color: var(--accent); }
+    .chip.temp { background: rgba(227, 179, 65, 0.16); color: var(--c-warn); }
 
     @keyframes rise {
-      from { opacity: 0; transform: translateY(18px); }
+      from { opacity: 0; transform: translateY(16px); }
       to { opacity: 1; transform: none; }
     }
 
-    section.block {
-      max-width: 1080px;
-      margin: 0 auto;
-      padding: 64px 24px;
-    }
+    /* Sections */
+    section.block { padding: 72px 0; }
     section.block h2 {
-      font-size: clamp(1.5rem, 3vw, 1.9rem);
+      font-size: clamp(1.45rem, 2.6vw, 1.85rem);
       margin-bottom: 10px;
     }
-    section.block > .sub {
+    .sub {
       color: var(--muted);
-      max-width: 52ch;
+      max-width: 62ch;
       margin-bottom: 28px;
+    }
+    .band {
+      border-block: 1px solid var(--border);
+      background: linear-gradient(180deg, transparent, var(--accent-weak), transparent);
     }
 
     .features {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 18px 28px;
-      border-top: 1px solid var(--border);
-      padding-top: 8px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
     }
     .feat {
-      padding-top: 20px;
-      border-top: 1px solid var(--border);
+      background: var(--surface);
+      padding: 22px 20px;
+      min-height: 140px;
     }
-    .feat h3 { font-size: 1.05rem; margin-bottom: 6px; }
-    .feat p { color: var(--muted); font-size: 0.95rem; }
+    .feat h3 { font-size: 1.02rem; margin-bottom: 8px; }
+    .feat p { color: var(--muted); font-size: 0.94rem; }
+
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+    .panel {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--surface);
+      padding: 22px;
+    }
+    .panel h3 { font-size: 1.05rem; margin-bottom: 12px; }
+    .panel ul, .panel ol {
+      margin: 0;
+      padding-left: 1.15rem;
+      color: var(--muted);
+      display: grid;
+      gap: 8px;
+    }
+    .panel li::marker { color: var(--accent); }
+    .panel strong { color: var(--text); }
 
     .steps {
       margin: 0;
       padding: 0;
       list-style: none;
       display: grid;
-      gap: 14px;
+      gap: 0;
       counter-reset: step;
     }
     .steps li {
       display: grid;
-      grid-template-columns: 36px 1fr;
+      grid-template-columns: 40px 1fr;
       gap: 14px;
       align-items: start;
-      padding: 14px 0;
+      padding: 16px 0;
       border-bottom: 1px solid var(--border);
       color: var(--muted);
     }
+    .steps li:last-child { border-bottom: 0; }
     .steps li::before {
       counter-increment: step;
       content: counter(step);
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
       display: grid;
       place-items: center;
       background: var(--accent-weak);
@@ -324,35 +453,119 @@
     }
     .steps strong { color: var(--text); }
 
-    .band {
-      background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--accent-weak) 55%, transparent), transparent);
-      border-block: 1px solid var(--border);
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--surface);
     }
-
-    footer {
-      max-width: 1080px;
-      margin: 0 auto;
-      padding: 40px 24px 56px;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.94rem;
+    }
+    th, td {
+      text-align: left;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    th {
+      font-family: Outfit, sans-serif;
+      font-weight: 600;
+      font-size: 0.82rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
       color: var(--muted);
-      font-size: 0.92rem;
+      background: var(--hover);
+    }
+    tr:last-child td { border-bottom: 0; }
+    td:first-child { color: var(--text); font-weight: 600; white-space: nowrap; }
+    td { color: var(--muted); }
+
+    .faq details {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--surface);
+      padding: 14px 16px;
+      margin-bottom: 10px;
+    }
+    .faq summary {
+      cursor: pointer;
+      font-family: Outfit, sans-serif;
+      font-weight: 600;
+      list-style: none;
+    }
+    .faq summary::-webkit-details-marker { display: none; }
+    .faq summary::after {
+      content: "+";
+      float: right;
+      color: var(--muted);
+      font-weight: 700;
+    }
+    .faq details[open] summary::after { content: "–"; }
+    .faq p { margin-top: 10px; color: var(--muted); font-size: 0.95rem; }
+
+    .version-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .vcard {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--surface);
+      padding: 22px;
       display: grid;
       gap: 12px;
+    }
+    .vcard.current { border-color: var(--accent-line); box-shadow: inset 0 0 0 1px var(--accent-line); }
+    .vcard .tag {
+      display: inline-flex;
+      width: fit-content;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font: 600 11px Outfit, sans-serif;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      background: var(--accent-weak);
+      color: var(--accent);
+    }
+    .vcard.legacy .tag {
+      background: var(--hover);
+      color: var(--muted);
+    }
+    .vcard h3 { font-size: 1.15rem; }
+    .vcard p { color: var(--muted); font-size: 0.95rem; }
+
+    footer {
+      padding: 40px 0 56px;
+      color: var(--muted);
+      font-size: 0.92rem;
+      border-top: 1px solid var(--border);
+    }
+    .foot-grid {
+      display: grid;
+      gap: 16px;
+      justify-items: center;
       text-align: center;
     }
     footer nav { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
-    footer .copy { font-size: 0.85rem; }
+    footer .copy { font-size: 0.85rem; max-width: 60ch; }
 
-    @media (max-width: 640px) {
-      .hero-mark img { width: 64px; height: 64px; border-radius: 16px; }
-      .hero-inner { padding-bottom: 48px; }
-      .mock { width: 100%; }
+    @media (max-width: 900px) {
+      .hero-grid, .split, .version-cards, .features { grid-template-columns: 1fr; }
+      .features { border-radius: 14px; }
+      .nav { display: none; }
+      .hero { padding-top: 36px; }
     }
-
+    @media (max-width: 560px) {
+      .wrap { width: calc(100% - 28px); }
+      .hero-brand img { width: 58px; height: 58px; border-radius: 14px; }
+      .meta-row { font-size: 0.84rem; }
+    }
     @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after {
-        animation: none !important;
-        transition: none !important;
-      }
+      *, *::before, *::after { animation: none !important; transition: none !important; }
     }
   </style>
 </head>
@@ -360,206 +573,635 @@
   <div class="grain" aria-hidden="true"></div>
   <div class="shell">
     <header class="top">
-      <a class="brand" href="#">
-        <img src="icons/icon48.png" alt="">
-        <span class="brand-name">CopyLoad</span>
-      </a>
-      <div class="top-actions">
-        <button type="button" class="icon-btn" id="btnTheme" title="Theme" aria-label="Toggle theme">◐</button>
-        <button type="button" class="icon-btn" id="btnLang" title="Language">VN</button>
+      <div class="wrap top-inner">
+        <a class="brand" href="#top">
+          <img src="icons/icon48.png" width="36" height="36" alt="">
+          <span class="brand-name">CopyLoad</span>
+        </a>
+        <nav class="nav" aria-label="Page">
+          <a href="#features" data-i18n="nav_features">Features</a>
+          <a href="#how" data-i18n="nav_how">How it works</a>
+          <a href="#install" data-i18n="nav_install">Install</a>
+          <a href="#privacy" data-i18n="nav_privacy">Privacy</a>
+          <a href="#versions" data-i18n="nav_versions">Versions</a>
+          <a href="#faq" data-i18n="nav_faq">FAQ</a>
+        </nav>
+        <div class="top-actions">
+          <label class="visually-hidden" for="langSelect" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">Language</label>
+          <select id="langSelect" class="lang-select" aria-label="Language">
+            <option value="en">EN</option>
+            <option value="vi">VN</option>
+            <option value="zh">中文</option>
+            <option value="ja">JP</option>
+          </select>
+          <button type="button" class="icon-btn" id="btnTheme" title="Toggle theme" aria-label="Toggle theme">◐</button>
+        </div>
       </div>
     </header>
 
-    <section class="hero">
-      <div class="hero-bg" aria-hidden="true"></div>
-      <div class="hero-inner">
-        <div class="hero-mark">
-          <img src="icons/logo.png" alt="CopyLoad">
-          <div class="hero-brand"><span>v1.0.2</span>CopyLoad</div>
-        </div>
-        <h1 id="t_title">Lưu mỗi lần copy. Dán lại đúng đoạn cần.</h1>
-        <p class="lead" id="t_lead">Quản lý lịch sử clipboard (văn bản &amp; ảnh) ngay trên máy — Paste Multi, ghim, PIN lock. Chrome &amp; Edge.</p>
-        <div class="cta">
-          <a class="btn btn-primary" id="btnDownload" href="https://github.com/anhhackta/CopyLoad-Extension/releases/latest" target="_blank" rel="noopener">
-            <span id="t_download">Tải bản mới nhất</span>
-          </a>
-          <a class="btn btn-ghost" href="https://github.com/anhhackta/CopyLoad-Extension" target="_blank" rel="noopener">GitHub</a>
-        </div>
-        <div class="mock" aria-hidden="true">
-          <div class="mock-bar">
-            <img src="icons/icon48.png" alt="">
-            CopyLoad
-          </div>
-          <div class="mock-list">
-            <div class="mock-item pin">
-              <strong>API_KEY=…</strong>
-              Mật khẩu tạm · đã ghim
+    <main id="top">
+      <section class="hero">
+        <div class="hero-bg" aria-hidden="true"></div>
+        <div class="wrap hero-grid">
+          <div class="hero-copy">
+            <div class="eyebrow"><i aria-hidden="true"></i><span data-i18n="eyebrow">v1.0.2 · Local-first · MIT</span></div>
+            <div class="hero-brand">
+              <img src="icons/logo.png" width="76" height="76" alt="CopyLoad">
+              <strong>CopyLoad</strong>
             </div>
-            <div class="mock-item">
-              <strong>https://anhhackta.com</strong>
-              <span class="chip">link</span>
+            <h1 data-i18n="title">Save every copy. Paste the right snippet back.</h1>
+            <p class="lead" data-i18n="lead">Clipboard history for text and images — stored only on your device. Paste Multi, pins, PIN lock, and encrypted export for Chrome &amp; Edge.</p>
+            <div class="cta">
+              <a class="btn btn-primary" href="https://github.com/anhhackta/CopyLoad-Extension/releases/latest" target="_blank" rel="noopener">
+                <span data-i18n="download">Download latest ZIP</span>
+              </a>
+              <a class="btn btn-ghost" href="https://github.com/anhhackta/CopyLoad-Extension" target="_blank" rel="noopener">GitHub</a>
+              <a class="btn btn-ghost" href="README.md" data-i18n="docs">Docs</a>
             </div>
-            <div class="mock-item">
-              <strong>Xin chào — đoạn vừa copy</strong>
-              12 giây trước
+            <div class="meta-row">
+              <span data-i18n="meta1">Manifest V3</span>
+              <span data-i18n="meta2">No cloud sync of clipboard</span>
+              <span data-i18n="meta3">Load unpacked install</span>
             </div>
           </div>
+
+          <div class="mock-wrap" aria-hidden="true">
+            <div class="mock">
+              <div class="mock-bar">
+                <div class="mock-bar-left">
+                  <img src="icons/icon48.png" width="22" height="22" alt="">
+                  CopyLoad
+                </div>
+                <span style="font-size:12px;color:var(--muted)" data-i18n="mock_lock">PIN ready</span>
+              </div>
+              <div class="mock-tabs">
+                <div class="mock-tab on" data-i18n="mock_tab_text">Text</div>
+                <div class="mock-tab" data-i18n="mock_tab_img">Images</div>
+                <div class="mock-tab" data-i18n="mock_tab_data">Data</div>
+                <div class="mock-tab" data-i18n="mock_tab_settings">Settings</div>
+              </div>
+              <div class="mock-list">
+                <div class="mock-item pin">
+                  <strong data-i18n="mock_i1t">API_KEY=prod_••••</strong>
+                  <span class="chip pin-chip" data-i18n="mock_pinned">Pinned</span>
+                  <span data-i18n="mock_i1d">Kept across sessions</span>
+                </div>
+                <div class="mock-item">
+                  <strong>https://anhhackta.com</strong>
+                  <span class="chip">link</span>
+                </div>
+                <div class="mock-item">
+                  <strong data-i18n="mock_i3t">Meeting notes — Q2 launch</strong>
+                  <span class="chip temp" data-i18n="mock_temp">Temp</span>
+                  <span data-i18n="mock_i3d">Clears when the browser closes</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-    </section>
-
-    <section class="block" id="features">
-      <h2 id="t_feat_title">Làm được gì</h2>
-      <p class="sub" id="t_feat_sub">Bản 1.0.2 viết lại kiến trúc: IndexedDB, ảnh, Paste Multi, khóa PIN — vẫn 100% local.</p>
-      <div class="features">
-        <article class="feat">
-          <h3 id="t_f1t">Text + ảnh</h3>
-          <p id="t_f1d">Tự lưu khi copy; chuột phải lưu text/ảnh; phân loại link, email, số, code.</p>
-        </article>
-        <article class="feat">
-          <h3 id="t_f2t">Paste Multi</h3>
-          <p id="t_f2d">Ctrl+V trong ô nhập để chọn đoạn đã lưu — hộp gợi ý hoặc phím 1–0.</p>
-        </article>
-        <article class="feat">
-          <h3 id="t_f3t">PIN &amp; quyền riêng tư</h3>
-          <p id="t_f3d">Khóa giao diện bằng PIN 4–6 số. Không analytics, không gửi clipboard đi đâu.</p>
-        </article>
-        <article class="feat">
-          <h3 id="t_f4t">Xuất / nhập</h3>
-          <p id="t_f4d">Backup JSON (có thể mã hóa mật khẩu), tải .txt, tự xóa mục cũ, ghim mục quan trọng.</p>
-        </article>
-      </div>
-    </section>
-
-    <div class="band">
-      <section class="block" id="install">
-        <h2 id="t_install_title">Cài đặt từ ZIP</h2>
-        <p class="sub" id="t_install_sub">Chưa lên Store — tải từ Releases rồi nạp unpacked.</p>
-        <ol class="steps">
-          <li id="t_s1"><strong>Tải ZIP</strong> bản Latest trên GitHub Releases.</li>
-          <li id="t_s2"><strong>Giải nén</strong> ra một thư mục (giữ nguyên cấu trúc).</li>
-          <li id="t_s3">Mở <strong>chrome://extensions</strong> hoặc <strong>edge://extensions</strong>, bật Developer mode.</li>
-          <li id="t_s4"><strong>Load unpacked</strong> → chọn thư mục có <code>manifest.json</code>.</li>
-        </ol>
       </section>
-    </div>
 
-    <section class="block">
-      <h2 id="t_legacy_title">Bản đầu tiên</h2>
-      <p class="sub" id="t_legacy_body">
-        Release <strong>v1.1.1</strong> là bản công khai đầu (chỉ text, kiến trúc cũ), vẫn tải được để đối chiếu.
-        Nhánh mã nguồn: <code>legacy-old</code>. Bản <strong>v1.0.2</strong> là dòng chính, sẽ cập nhật lâu dài.
-      </p>
-      <div class="cta">
-        <a class="btn" href="https://github.com/anhhackta/CopyLoad-Extension/releases/tag/Ver1.1.1" target="_blank" rel="noopener" id="t_legacy_btn">Xem bản đầu v1.1.1</a>
-        <a class="btn btn-primary" href="https://github.com/anhhackta/CopyLoad-Extension/releases/latest" target="_blank" rel="noopener" id="t_latest_btn">Bản hiện tại v1.0.2</a>
+      <section class="block" id="features">
+        <div class="wrap">
+          <h2 data-i18n="feat_title">Built for everyday clipboard work</h2>
+          <p class="sub" data-i18n="feat_sub">v1.0.2 is a full rebuild: IndexedDB history, images, Paste Multi, and PIN — still 100% local.</p>
+          <div class="features">
+            <article class="feat">
+              <h3 data-i18n="f1t">Text + images</h3>
+              <p data-i18n="f1d">Auto-save on copy, right-click capture, image paste from the system clipboard, thumbnails, and search.</p>
+            </article>
+            <article class="feat">
+              <h3 data-i18n="f2t">Smart classification</h3>
+              <p data-i18n="f2d">Entries are tagged as text, link, email, number, or code. Pin important items so cleanup never removes them.</p>
+            </article>
+            <article class="feat">
+              <h3 data-i18n="f3t">Paste Multi</h3>
+              <p data-i18n="f3d">Press Ctrl+V in an input to pick a saved snippet — suggestion box or quick keys 1–0. Ctrl+Shift+V stays a normal paste.</p>
+            </article>
+            <article class="feat">
+              <h3 data-i18n="f4t">Temp vs permanent</h3>
+              <p data-i18n="f4d">Turn off “Save permanently” for session-only text. Images follow the same switch so nothing leaks into long-term storage by accident.</p>
+            </article>
+            <article class="feat">
+              <h3 data-i18n="f5t">PIN lock</h3>
+              <p data-i18n="f5d">Optional 4–6 digit PIN for the popup, manager, and Paste Multi, with lock timeout and attempt limits.</p>
+            </article>
+            <article class="feat">
+              <h3 data-i18n="f6t">Backup &amp; cleanup</h3>
+              <p data-i18n="f6d">Export/import JSON (optional password encryption), plain .txt export, auto-delete old items, and bulk delete.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <div class="band">
+        <section class="block" id="how">
+          <div class="wrap">
+            <h2 data-i18n="how_title">How it works</h2>
+            <p class="sub" data-i18n="how_sub">A small Manifest V3 extension: content script listens, service worker writes, IndexedDB stores, UI reads.</p>
+            <div class="split">
+              <div class="panel">
+                <h3 data-i18n="how_cap_title">Capture flow</h3>
+                <ol>
+                  <li data-i18n="how_c1">You copy, cut, or paste text on a page (or right-click save).</li>
+                  <li data-i18n="how_c2">The content script sends a typed message to the background worker.</li>
+                  <li data-i18n="how_c3">History is written to IndexedDB; temporary text uses session storage.</li>
+                  <li data-i18n="how_c4">Popup / manager refresh the list with search, pins, and paging.</li>
+                </ol>
+              </div>
+              <div class="panel">
+                <h3 data-i18n="how_paste_title">Paste Multi</h3>
+                <ul>
+                  <li data-i18n="how_p1"><strong>Box mode:</strong> Ctrl+V opens a floating picker (↑↓, Enter, 1–0).</li>
+                  <li data-i18n="how_p2"><strong>Quick mode:</strong> Ctrl+V then press a digit within the short window.</li>
+                  <li data-i18n="how_p3">Bypass with Ctrl+Shift+V or the page’s own Paste menu.</li>
+                  <li data-i18n="how_p4">When PIN lock is “every open”, Paste Multi stays locked until unlock.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
-    </section>
+
+      <section class="block" id="install">
+        <div class="wrap">
+          <h2 data-i18n="install_title">Install from ZIP</h2>
+          <p class="sub" data-i18n="install_sub">Not on the Chrome Web Store yet. Use Developer mode → Load unpacked.</p>
+          <div class="split">
+            <ol class="steps">
+              <li data-i18n-html="s1"><strong>Download</strong> the Latest ZIP from GitHub Releases.</li>
+              <li data-i18n-html="s2"><strong>Unzip</strong> into a folder and keep the file structure intact.</li>
+              <li data-i18n-html="s3">Open <strong>chrome://extensions</strong> or <strong>edge://extensions</strong> and enable Developer mode.</li>
+              <li data-i18n-html="s4"><strong>Load unpacked</strong> → select the folder that contains <code>manifest.json</code>.</li>
+            </ol>
+            <div class="panel">
+              <h3 data-i18n="shortcuts_title">Useful shortcuts</h3>
+              <div class="table-wrap" style="border:0;border-radius:0;background:transparent">
+                <table>
+                  <thead>
+                    <tr><th data-i18n="th_action">Action</th><th data-i18n="th_how">How</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td data-i18n="sc1a">Save text</td><td data-i18n="sc1b">Ctrl+C (if enabled) / right-click</td></tr>
+                    <tr><td data-i18n="sc2a">Save image</td><td data-i18n="sc2b">Right-click image / Images → Paste</td></tr>
+                    <tr><td data-i18n="sc3a">Paste from history</td><td data-i18n="sc3b">Paste Multi + Ctrl+V</td></tr>
+                    <tr><td data-i18n="sc4a">Normal paste</td><td data-i18n="sc4b">Ctrl+Shift+V</td></tr>
+                    <tr><td data-i18n="sc5a">Open manager</td><td data-i18n="sc5b">Header button in the popup</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="cta" style="margin-top:24px">
+            <a class="btn btn-primary" href="https://github.com/anhhackta/CopyLoad-Extension/releases/latest" target="_blank" rel="noopener" data-i18n="download">Download latest ZIP</a>
+            <a class="btn" href="README.md" data-i18n="readme_link">Open English README</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="block band" id="privacy">
+        <div class="wrap">
+          <h2 data-i18n="privacy_title">Privacy by design</h2>
+          <p class="sub" data-i18n="privacy_sub">Clipboard content never leaves the machine for analytics or remote sync.</p>
+          <div class="features">
+            <article class="feat">
+              <h3 data-i18n="pr1t">Local storage only</h3>
+              <p data-i18n="pr1d">History lives in IndexedDB. Settings use chrome.storage.sync / local. No remote clipboard API.</p>
+            </article>
+            <article class="feat">
+              <h3 data-i18n="pr2t">PIN is a UI lock</h3>
+              <p data-i18n="pr2d">PIN is hashed with PBKDF2. It protects opening the UI / Paste Multi — it does not encrypt the whole database at rest.</p>
+            </article>
+            <article class="feat">
+              <h3 data-i18n="pr3t">Encrypted exports</h3>
+              <p data-i18n="pr3d">When you export with a password, the JSON backup is encrypted with AES-GCM. Lose the password and the file cannot be opened.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="block" id="versions">
+        <div class="wrap">
+          <h2 data-i18n="ver_title">Versions</h2>
+          <p class="sub" data-i18n="ver_sub">The first public build is preserved. The current line will receive ongoing updates.</p>
+          <div class="version-cards">
+            <article class="vcard current">
+              <span class="tag" data-i18n="ver_latest_tag">Latest · main</span>
+              <h3>CopyLoad v1.0.2</h3>
+              <p data-i18n="ver_latest_body">Full rewrite: text + images, Paste Multi, PIN, IndexedDB, export/import, manager page. Long-term line.</p>
+              <div class="cta">
+                <a class="btn btn-primary" href="https://github.com/anhhackta/CopyLoad-Extension/releases/tag/v1.0.2" target="_blank" rel="noopener" data-i18n="ver_latest_btn">Open v1.0.2 release</a>
+              </div>
+            </article>
+            <article class="vcard legacy">
+              <span class="tag" data-i18n="ver_legacy_tag">First release · legacy-old</span>
+              <h3>CopyLoad Ver1.1.1</h3>
+              <p data-i18n="ver_legacy_body">Original public build: text-only clipboard history and the older flat architecture. Kept for download and comparison.</p>
+              <div class="cta">
+                <a class="btn" href="https://github.com/anhhackta/CopyLoad-Extension/releases/tag/Ver1.1.1" target="_blank" rel="noopener" data-i18n="ver_legacy_btn">Open Ver1.1.1 release</a>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="block" id="faq">
+        <div class="wrap">
+          <h2 data-i18n="faq_title">FAQ</h2>
+          <p class="sub" data-i18n="faq_sub">Short answers to common install and usage questions.</p>
+          <div class="faq">
+            <details>
+              <summary data-i18n="q1">Why isn’t CopyLoad on the Chrome Web Store?</summary>
+              <p data-i18n="a1">The current distribution path is GitHub Releases + Load unpacked. Store publishing may come later; the ZIP path stays supported.</p>
+            </details>
+            <details>
+              <summary data-i18n="q2">Does Paste Multi replace every Ctrl+V?</summary>
+              <p data-i18n="a2">Only when Paste Multi is enabled and focus is in an editable field. Use Ctrl+Shift+V or the page Paste menu for a normal paste.</p>
+            </details>
+            <details>
+              <summary data-i18n="q3">Is my clipboard uploaded anywhere?</summary>
+              <p data-i18n="a3">No. History stays on the device. The landing page and docs may load fonts from Google Fonts; the extension itself does not send clipboard data to the network.</p>
+            </details>
+            <details>
+              <summary data-i18n="q4">What happened to version 1.1.1?</summary>
+              <p data-i18n="a4">It remains available as the first public release (tag Ver1.1.1, branch legacy-old). It is no longer marked Latest — use v1.0.2 for the current product.</p>
+            </details>
+            <details>
+              <summary data-i18n="q5">Which license applies?</summary>
+              <p data-i18n="a5">MIT. You may use, modify, and redistribute CopyLoad if you keep the copyright notice and credit the author.</p>
+            </details>
+          </div>
+        </div>
+      </section>
+    </main>
 
     <footer>
-      <nav>
-        <a href="https://github.com/anhhackta/CopyLoad-Extension" target="_blank" rel="noopener">Repo</a>
-        <a href="https://github.com/anhhackta/CopyLoad-Extension/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a>
-        <a href="https://facebook.com/anhhackta.official" target="_blank" rel="noopener">Facebook</a>
-        <a href="https://www.buymeacoffee.com/anhhackta" target="_blank" rel="noopener" id="t_donate">Ủng hộ</a>
-      </nav>
-      <p class="copy" id="t_copy">© 2025–2026 Nguyễn Bá Hoàng (anhhackta). MIT — dùng tự do nếu ghi nguồn.</p>
+      <div class="wrap foot-grid">
+        <nav>
+          <a href="https://github.com/anhhackta/CopyLoad-Extension" target="_blank" rel="noopener">Repo</a>
+          <a href="https://github.com/anhhackta/CopyLoad-Extension/blob/main/LICENSE" target="_blank" rel="noopener">MIT</a>
+          <a href="README.md">README</a>
+          <a href="README_VN.md">VN</a>
+          <a href="README_ZH.md">中文</a>
+          <a href="README_JP.md">JP</a>
+          <a href="https://facebook.com/anhhackta.official" target="_blank" rel="noopener">Facebook</a>
+          <a href="https://www.buymeacoffee.com/anhhackta" target="_blank" rel="noopener" data-i18n="donate">Support</a>
+        </nav>
+        <p class="copy" data-i18n="copy">© 2025–2026 Nguyễn Bá Hoàng (anhhackta). MIT — free to use with attribution.</p>
+      </div>
     </footer>
   </div>
 
   <script>
+    const LANGS = ["en", "vi", "zh", "ja"];
     const dict = {
+      en: {
+        nav_features: "Features", nav_how: "How it works", nav_install: "Install",
+        nav_privacy: "Privacy", nav_versions: "Versions", nav_faq: "FAQ",
+        eyebrow: "v1.0.2 · Local-first · MIT",
+        title: "Save every copy. Paste the right snippet back.",
+        lead: "Clipboard history for text and images — stored only on your device. Paste Multi, pins, PIN lock, and encrypted export for Chrome & Edge.",
+        download: "Download latest ZIP", docs: "Docs",
+        meta1: "Manifest V3", meta2: "No cloud sync of clipboard", meta3: "Load unpacked install",
+        mock_lock: "PIN ready", mock_tab_text: "Text", mock_tab_img: "Images",
+        mock_tab_data: "Data", mock_tab_settings: "Settings",
+        mock_i1t: "API_KEY=prod_••••", mock_pinned: "Pinned", mock_i1d: "Kept across sessions",
+        mock_i3t: "Meeting notes — Q2 launch", mock_temp: "Temp", mock_i3d: "Clears when the browser closes",
+        feat_title: "Built for everyday clipboard work",
+        feat_sub: "v1.0.2 is a full rebuild: IndexedDB history, images, Paste Multi, and PIN — still 100% local.",
+        f1t: "Text + images", f1d: "Auto-save on copy, right-click capture, image paste from the system clipboard, thumbnails, and search.",
+        f2t: "Smart classification", f2d: "Entries are tagged as text, link, email, number, or code. Pin important items so cleanup never removes them.",
+        f3t: "Paste Multi", f3d: "Press Ctrl+V in an input to pick a saved snippet — suggestion box or quick keys 1–0. Ctrl+Shift+V stays a normal paste.",
+        f4t: "Temp vs permanent", f4d: "Turn off “Save permanently” for session-only text. Images follow the same switch so nothing leaks into long-term storage by accident.",
+        f5t: "PIN lock", f5d: "Optional 4–6 digit PIN for the popup, manager, and Paste Multi, with lock timeout and attempt limits.",
+        f6t: "Backup & cleanup", f6d: "Export/import JSON (optional password encryption), plain .txt export, auto-delete old items, and bulk delete.",
+        how_title: "How it works",
+        how_sub: "A small Manifest V3 extension: content script listens, service worker writes, IndexedDB stores, UI reads.",
+        how_cap_title: "Capture flow",
+        how_c1: "You copy, cut, or paste text on a page (or right-click save).",
+        how_c2: "The content script sends a typed message to the background worker.",
+        how_c3: "History is written to IndexedDB; temporary text uses session storage.",
+        how_c4: "Popup / manager refresh the list with search, pins, and paging.",
+        how_paste_title: "Paste Multi",
+        how_p1: "<strong>Box mode:</strong> Ctrl+V opens a floating picker (↑↓, Enter, 1–0).",
+        how_p2: "<strong>Quick mode:</strong> Ctrl+V then press a digit within the short window.",
+        how_p3: "Bypass with Ctrl+Shift+V or the page’s own Paste menu.",
+        how_p4: "When PIN lock is “every open”, Paste Multi stays locked until unlock.",
+        install_title: "Install from ZIP",
+        install_sub: "Not on the Chrome Web Store yet. Use Developer mode → Load unpacked.",
+        s1: "<strong>Download</strong> the Latest ZIP from GitHub Releases.",
+        s2: "<strong>Unzip</strong> into a folder and keep the file structure intact.",
+        s3: "Open <strong>chrome://extensions</strong> or <strong>edge://extensions</strong> and enable Developer mode.",
+        s4: "<strong>Load unpacked</strong> → select the folder that contains <code>manifest.json</code>.",
+        shortcuts_title: "Useful shortcuts",
+        th_action: "Action", th_how: "How",
+        sc1a: "Save text", sc1b: "Ctrl+C (if enabled) / right-click",
+        sc2a: "Save image", sc2b: "Right-click image / Images → Paste",
+        sc3a: "Paste from history", sc3b: "Paste Multi + Ctrl+V",
+        sc4a: "Normal paste", sc4b: "Ctrl+Shift+V",
+        sc5a: "Open manager", sc5b: "Header button in the popup",
+        readme_link: "Open English README",
+        privacy_title: "Privacy by design",
+        privacy_sub: "Clipboard content never leaves the machine for analytics or remote sync.",
+        pr1t: "Local storage only", pr1d: "History lives in IndexedDB. Settings use chrome.storage.sync / local. No remote clipboard API.",
+        pr2t: "PIN is a UI lock", pr2d: "PIN is hashed with PBKDF2. It protects opening the UI / Paste Multi — it does not encrypt the whole database at rest.",
+        pr3t: "Encrypted exports", pr3d: "When you export with a password, the JSON backup is encrypted with AES-GCM. Lose the password and the file cannot be opened.",
+        ver_title: "Versions",
+        ver_sub: "The first public build is preserved. The current line will receive ongoing updates.",
+        ver_latest_tag: "Latest · main",
+        ver_latest_body: "Full rewrite: text + images, Paste Multi, PIN, IndexedDB, export/import, manager page. Long-term line.",
+        ver_latest_btn: "Open v1.0.2 release",
+        ver_legacy_tag: "First release · legacy-old",
+        ver_legacy_body: "Original public build: text-only clipboard history and the older flat architecture. Kept for download and comparison.",
+        ver_legacy_btn: "Open Ver1.1.1 release",
+        faq_title: "FAQ", faq_sub: "Short answers to common install and usage questions.",
+        q1: "Why isn’t CopyLoad on the Chrome Web Store?",
+        a1: "The current distribution path is GitHub Releases + Load unpacked. Store publishing may come later; the ZIP path stays supported.",
+        q2: "Does Paste Multi replace every Ctrl+V?",
+        a2: "Only when Paste Multi is enabled and focus is in an editable field. Use Ctrl+Shift+V or the page Paste menu for a normal paste.",
+        q3: "Is my clipboard uploaded anywhere?",
+        a3: "No. History stays on the device. The landing page may load fonts from Google Fonts; the extension itself does not send clipboard data to the network.",
+        q4: "What happened to version 1.1.1?",
+        a4: "It remains available as the first public release (tag Ver1.1.1, branch legacy-old). It is no longer marked Latest — use v1.0.2 for the current product.",
+        q5: "Which license applies?",
+        a5: "MIT. You may use, modify, and redistribute CopyLoad if you keep the copyright notice and credit the author.",
+        donate: "Support",
+        copy: "© 2025–2026 Nguyễn Bá Hoàng (anhhackta). MIT — free to use with attribution."
+      },
       vi: {
+        nav_features: "Tính năng", nav_how: "Cách hoạt động", nav_install: "Cài đặt",
+        nav_privacy: "Riêng tư", nav_versions: "Phiên bản", nav_faq: "FAQ",
+        eyebrow: "v1.0.2 · Local-first · MIT",
         title: "Lưu mỗi lần copy. Dán lại đúng đoạn cần.",
-        lead: "Quản lý lịch sử clipboard (văn bản & ảnh) ngay trên máy — Paste Multi, ghim, PIN lock. Chrome & Edge.",
-        download: "Tải bản mới nhất",
-        feat_title: "Làm được gì",
-        feat_sub: "Bản 1.0.2 viết lại kiến trúc: IndexedDB, ảnh, Paste Multi, khóa PIN — vẫn 100% local.",
-        f1t: "Text + ảnh", f1d: "Tự lưu khi copy; chuột phải lưu text/ảnh; phân loại link, email, số, code.",
-        f2t: "Paste Multi", f2d: "Ctrl+V trong ô nhập để chọn đoạn đã lưu — hộp gợi ý hoặc phím 1–0.",
-        f3t: "PIN & quyền riêng tư", f3d: "Khóa giao diện bằng PIN 4–6 số. Không analytics, không gửi clipboard đi đâu.",
-        f4t: "Xuất / nhập", f4d: "Backup JSON (có thể mã hóa mật khẩu), tải .txt, tự xóa mục cũ, ghim mục quan trọng.",
+        lead: "Lịch sử clipboard cho văn bản và ảnh — chỉ lưu trên máy. Paste Multi, ghim, PIN lock và xuất mã hóa cho Chrome & Edge.",
+        download: "Tải ZIP mới nhất", docs: "Tài liệu",
+        meta1: "Manifest V3", meta2: "Không đồng bộ clipboard lên mây", meta3: "Cài bằng Load unpacked",
+        mock_lock: "Sẵn sàng PIN", mock_tab_text: "Văn bản", mock_tab_img: "Ảnh",
+        mock_tab_data: "Dữ liệu", mock_tab_settings: "Cài đặt",
+        mock_i1t: "API_KEY=prod_••••", mock_pinned: "Đã ghim", mock_i1d: "Giữ qua các phiên",
+        mock_i3t: "Ghi chú họp — ra mắt Q2", mock_temp: "Tạm", mock_i3d: "Mất khi đóng trình duyệt",
+        feat_title: "Cho công việc clipboard hàng ngày",
+        feat_sub: "v1.0.2 viết lại toàn bộ: IndexedDB, ảnh, Paste Multi, PIN — vẫn 100% local.",
+        f1t: "Text + ảnh", f1d: "Tự lưu khi copy, chuột phải, dán ảnh từ clipboard hệ thống, thumbnail và tìm kiếm.",
+        f2t: "Phân loại thông minh", f2d: "Gắn nhãn text / link / email / số / code. Ghim mục quan trọng để dọn dẹp không xóa nhầm.",
+        f3t: "Paste Multi", f3d: "Ctrl+V trong ô nhập để chọn đoạn đã lưu — hộp gợi ý hoặc phím 1–0. Ctrl+Shift+V vẫn dán bình thường.",
+        f4t: "Tạm / vĩnh viễn", f4d: "Tắt “Lưu vĩnh viễn” để text chỉ tồn tại trong phiên. Ảnh cũng theo cùng công tắc.",
+        f5t: "Khóa PIN", f5d: "PIN 4–6 số cho popup, manager và Paste Multi, kèm timeout và giới hạn thử.",
+        f6t: "Sao lưu & dọn dẹp", f6d: "Xuất/nhập JSON (tuỳ chọn mã hóa), tải .txt, tự xóa mục cũ, xóa hàng loạt.",
+        how_title: "Cách hoạt động",
+        how_sub: "Extension Manifest V3 gọn: content script lắng nghe, service worker ghi, IndexedDB lưu, UI đọc.",
+        how_cap_title: "Luồng ghi nhận",
+        how_c1: "Bạn copy, cắt, dán text trên trang (hoặc chuột phải để lưu).",
+        how_c2: "Content script gửi message có kiểu tới background worker.",
+        how_c3: "Lịch sử ghi vào IndexedDB; text tạm dùng session storage.",
+        how_c4: "Popup / manager cập nhật danh sách với tìm kiếm, ghim và phân trang.",
+        how_paste_title: "Paste Multi",
+        how_p1: "<strong>Chế độ hộp:</strong> Ctrl+V mở picker (↑↓, Enter, 1–0).",
+        how_p2: "<strong>Chế độ nhanh:</strong> Ctrl+V rồi bấm số trong cửa sổ ngắn.",
+        how_p3: "Bỏ qua bằng Ctrl+Shift+V hoặc menu Paste của trang.",
+        how_p4: "Nếu PIN “mỗi lần mở”, Paste Multi khóa đến khi mở khóa.",
         install_title: "Cài đặt từ ZIP",
-        install_sub: "Chưa lên Store — tải từ Releases rồi nạp unpacked.",
-        s1: "<strong>Tải ZIP</strong> bản Latest trên GitHub Releases.",
-        s2: "<strong>Giải nén</strong> ra một thư mục (giữ nguyên cấu trúc).",
-        s3: "Mở <strong>chrome://extensions</strong> hoặc <strong>edge://extensions</strong>, bật Developer mode.",
+        install_sub: "Chưa lên Chrome Web Store. Dùng Developer mode → Load unpacked.",
+        s1: "<strong>Tải</strong> ZIP Latest từ GitHub Releases.",
+        s2: "<strong>Giải nén</strong> vào một thư mục, giữ nguyên cấu trúc.",
+        s3: "Mở <strong>chrome://extensions</strong> hoặc <strong>edge://extensions</strong> và bật Developer mode.",
         s4: "<strong>Load unpacked</strong> → chọn thư mục có <code>manifest.json</code>.",
-        legacy_title: "Bản đầu tiên",
-        legacy_body: "Release <strong>v1.1.1</strong> là bản công khai đầu (chỉ text, kiến trúc cũ), vẫn tải được để đối chiếu. Nhánh mã nguồn: <code>legacy-old</code>. Bản <strong>v1.0.2</strong> là dòng chính, sẽ cập nhật lâu dài.",
-        legacy_btn: "Xem bản đầu v1.1.1",
-        latest_btn: "Bản hiện tại v1.0.2",
+        shortcuts_title: "Phím tắt hữu ích",
+        th_action: "Việc", th_how: "Cách",
+        sc1a: "Lưu text", sc1b: "Ctrl+C (nếu bật) / chuột phải",
+        sc2a: "Lưu ảnh", sc2b: "Chuột phải ảnh / Ảnh → Dán",
+        sc3a: "Dán từ lịch sử", sc3b: "Paste Multi + Ctrl+V",
+        sc4a: "Dán thường", sc4b: "Ctrl+Shift+V",
+        sc5a: "Mở manager", sc5b: "Nút trên header popup",
+        readme_link: "Mở README tiếng Anh",
+        privacy_title: "Riêng tư từ thiết kế",
+        privacy_sub: "Nội dung clipboard không bị gửi đi vì analytics hay đồng bộ từ xa.",
+        pr1t: "Chỉ lưu local", pr1d: "Lịch sử trong IndexedDB. Cài đặt dùng chrome.storage.sync / local. Không API clipboard từ xa.",
+        pr2t: "PIN là khóa UI", pr2d: "PIN hash bằng PBKDF2. Bảo vệ mở UI / Paste Multi — không mã hóa toàn bộ DB khi nghỉ.",
+        pr3t: "Xuất có mã hóa", pr3d: "Xuất kèm mật khẩu dùng AES-GCM. Quên mật khẩu thì không mở lại được file.",
+        ver_title: "Phiên bản",
+        ver_sub: "Bản công khai đầu được giữ lại. Dòng hiện tại sẽ cập nhật lâu dài.",
+        ver_latest_tag: "Latest · main",
+        ver_latest_body: "Viết lại: text + ảnh, Paste Multi, PIN, IndexedDB, xuất/nhập, trang quản lý. Dòng dài hạn.",
+        ver_latest_btn: "Mở release v1.0.2",
+        ver_legacy_tag: "Bản đầu · legacy-old",
+        ver_legacy_body: "Bản công khai gốc: chỉ text và kiến trúc phẳng cũ. Giữ để tải và đối chiếu.",
+        ver_legacy_btn: "Mở release Ver1.1.1",
+        faq_title: "FAQ", faq_sub: "Trả lời ngắn cho câu hỏi cài đặt và dùng thường gặp.",
+        q1: "Sao chưa lên Chrome Web Store?",
+        a1: "Hiện phân phối qua GitHub Releases + Load unpacked. Có thể lên Store sau; đường ZIP vẫn được hỗ trợ.",
+        q2: "Paste Multi có thay mọi Ctrl+V không?",
+        a2: "Chỉ khi bật Paste Multi và focus trong ô nhập. Dùng Ctrl+Shift+V hoặc menu Paste để dán thường.",
+        q3: "Clipboard có bị upload không?",
+        a3: "Không. Lịch sử ở trên máy. Trang landing có thể tải font Google Fonts; extension không gửi clipboard lên mạng.",
+        q4: "Bản 1.1.1 còn không?",
+        a4: "Vẫn có (tag Ver1.1.1, nhánh legacy-old). Không còn là Latest — dùng v1.0.2 cho bản hiện tại.",
+        q5: "License nào?",
+        a5: "MIT. Được dùng, sửa, phân phối nếu giữ copyright và ghi nguồn tác giả.",
         donate: "Ủng hộ",
         copy: "© 2025–2026 Nguyễn Bá Hoàng (anhhackta). MIT — dùng tự do nếu ghi nguồn."
       },
-      en: {
-        title: "Save every copy. Paste the right snippet back.",
-        lead: "Clipboard history for text & images — on your device only. Paste Multi, pin, PIN lock. Chrome & Edge.",
-        download: "Download latest",
-        feat_title: "What you get",
-        feat_sub: "v1.0.2 is a full rebuild: IndexedDB, images, Paste Multi, PIN — still 100% local.",
-        f1t: "Text + images", f1d: "Auto-save on copy; right-click text/images; classify links, emails, numbers, code.",
-        f2t: "Paste Multi", f2d: "Ctrl+V in an input to pick a saved snippet — suggestion box or keys 1–0.",
-        f3t: "PIN & privacy", f3d: "Lock the UI with a 4–6 digit PIN. No analytics; clipboard never leaves the device.",
-        f4t: "Export / import", f4d: "JSON backup (optional password encryption), .txt export, auto-delete, pins.",
-        install_title: "Install from ZIP",
-        install_sub: "Not on the Store yet — download from Releases and load unpacked.",
-        s1: "<strong>Download the ZIP</strong> marked Latest on GitHub Releases.",
-        s2: "<strong>Unzip</strong> into a folder (keep the file structure).",
-        s3: "Open <strong>chrome://extensions</strong> or <strong>edge://extensions</strong>, enable Developer mode.",
-        s4: "<strong>Load unpacked</strong> → pick the folder that contains <code>manifest.json</code>.",
-        legacy_title: "First release",
-        legacy_body: "Release <strong>v1.1.1</strong> is the original public build (text-only, older architecture) — still available for comparison. Source branch: <code>legacy-old</code>. <strong>v1.0.2</strong> is the main line going forward.",
-        legacy_btn: "Open first release v1.1.1",
-        latest_btn: "Current build v1.0.2",
-        donate: "Support",
-        copy: "© 2025–2026 Nguyễn Bá Hoàng (anhhackta). MIT — free to use with attribution."
+      zh: {
+        nav_features: "功能", nav_how: "原理", nav_install: "安装",
+        nav_privacy: "隐私", nav_versions: "版本", nav_faq: "常见问题",
+        eyebrow: "v1.0.2 · 本地优先 · MIT",
+        title: "保存每一次复制，粘贴回正确片段。",
+        lead: "文本与图片剪贴板历史，仅保存在本机。支持 Paste Multi、置顶、PIN 锁定与加密导出，适用于 Chrome 与 Edge。",
+        download: "下载最新 ZIP", docs: "文档",
+        meta1: "Manifest V3", meta2: "不把剪贴板同步到云端", meta3: "以 Load unpacked 安装",
+        mock_lock: "PIN 可用", mock_tab_text: "文本", mock_tab_img: "图片",
+        mock_tab_data: "数据", mock_tab_settings: "设置",
+        mock_i1t: "API_KEY=prod_••••", mock_pinned: "已置顶", mock_i1d: "跨会话保留",
+        mock_i3t: "会议纪要 — Q2 发布", mock_temp: "临时", mock_i3d: "关闭浏览器后清除",
+        feat_title: "为日常剪贴板工作而做",
+        feat_sub: "v1.0.2 全面重构：IndexedDB、图片、Paste Multi、PIN —— 仍然 100% 本地。",
+        f1t: "文本 + 图片", f1d: "复制时自动保存、右键采集、从系统剪贴板粘贴图片、缩略图与搜索。",
+        f2t: "智能分类", f2d: "标记为文本 / 链接 / 邮箱 / 数字 / 代码。置顶重要项，清理时不会误删。",
+        f3t: "Paste Multi", f3d: "在输入框按 Ctrl+V 选择历史片段 — 建议框或快捷键 1–0。Ctrl+Shift+V 仍为普通粘贴。",
+        f4t: "临时 / 永久", f4d: "关闭“永久保存”后，文本仅保留到会话结束。图片遵循同一开关。",
+        f5t: "PIN 锁定", f5d: "可选 4–6 位 PIN，保护弹窗、管理页与 Paste Multi，含超时与尝试次数限制。",
+        f6t: "备份与清理", f6d: "导入/导出 JSON（可选密码加密）、导出 .txt、自动删除旧项、批量删除。",
+        how_title: "工作原理",
+        how_sub: "精简的 Manifest V3 扩展：内容脚本监听，service worker 写入，IndexedDB 存储，界面读取。",
+        how_cap_title: "采集流程",
+        how_c1: "在页面上复制、剪切或粘贴文本（或右键保存）。",
+        how_c2: "内容脚本向后台 worker 发送带类型的消息。",
+        how_c3: "历史写入 IndexedDB；临时文本使用 session storage。",
+        how_c4: "弹窗 / 管理页刷新列表，支持搜索、置顶与分页。",
+        how_paste_title: "Paste Multi",
+        how_p1: "<strong>框选模式：</strong>Ctrl+V 打开浮动选择器（↑↓、Enter、1–0）。",
+        how_p2: "<strong>快速模式：</strong>Ctrl+V 后在短窗口内按数字键。",
+        how_p3: "用 Ctrl+Shift+V 或页面粘贴菜单绕过。",
+        how_p4: "若 PIN 设为“每次打开”，解锁前 Paste Multi 保持锁定。",
+        install_title: "从 ZIP 安装",
+        install_sub: "尚未上架 Chrome 网上应用店。使用开发者模式 → 加载已解压的扩展。",
+        s1: "<strong>下载</strong> GitHub Releases 中的 Latest ZIP。",
+        s2: "<strong>解压</strong>到文件夹并保持目录结构。",
+        s3: "打开 <strong>chrome://extensions</strong> 或 <strong>edge://extensions</strong> 并启用开发者模式。",
+        s4: "<strong>加载已解压的扩展程序</strong> → 选择包含 <code>manifest.json</code> 的文件夹。",
+        shortcuts_title: "常用快捷操作",
+        th_action: "操作", th_how: "方法",
+        sc1a: "保存文本", sc1b: "Ctrl+C（若启用）/ 右键",
+        sc2a: "保存图片", sc2b: "右键图片 / 图片 → 粘贴",
+        sc3a: "从历史粘贴", sc3b: "Paste Multi + Ctrl+V",
+        sc4a: "普通粘贴", sc4b: "Ctrl+Shift+V",
+        sc5a: "打开管理页", sc5b: "弹窗标题栏按钮",
+        readme_link: "打开英文 README",
+        privacy_title: "隐私设计",
+        privacy_sub: "剪贴板内容不会因分析或远程同步而离开本机。",
+        pr1t: "仅本地存储", pr1d: "历史在 IndexedDB。设置使用 chrome.storage.sync / local。无远程剪贴板 API。",
+        pr2t: "PIN 是界面锁", pr2d: "PIN 经 PBKDF2 哈希。保护打开界面 / Paste Multi —— 不对整库静态加密。",
+        pr3t: "加密导出", pr3d: "带密码导出时使用 AES-GCM。忘记密码将无法打开备份。",
+        ver_title: "版本",
+        ver_sub: "保留首个公开版本。当前主线将持续更新。",
+        ver_latest_tag: "Latest · main",
+        ver_latest_body: "全面重写：文本+图片、Paste Multi、PIN、IndexedDB、导入导出、管理页。长期主线。",
+        ver_latest_btn: "打开 v1.0.2 发布页",
+        ver_legacy_tag: "首发 · legacy-old",
+        ver_legacy_body: "最初公开版：仅文本与旧扁平架构。保留下载与对照。",
+        ver_legacy_btn: "打开 Ver1.1.1 发布页",
+        faq_title: "常见问题", faq_sub: "安装与使用的简短说明。",
+        q1: "为什么还没有上架商店？",
+        a1: "当前通过 GitHub Releases + 加载已解压扩展分发。商店上架可能稍后；ZIP 方式会持续支持。",
+        q2: "Paste Multi 会替换所有 Ctrl+V 吗？",
+        a2: "仅在启用 Paste Multi 且焦点在可编辑区域时。普通粘贴请用 Ctrl+Shift+V 或页面粘贴菜单。",
+        q3: "剪贴板会上传吗？",
+        a3: "不会。历史保存在本机。落地页可能加载 Google Fonts；扩展本身不发送剪贴板数据。",
+        q4: "1.1.1 还在吗？",
+        a4: "仍可下载（标签 Ver1.1.1，分支 legacy-old）。不再是 Latest — 请用 v1.0.2。",
+        q5: "使用什么许可证？",
+        a5: "MIT。可自由使用、修改与再分发，但须保留版权声明并注明作者。",
+        donate: "支持作者",
+        copy: "© 2025–2026 Nguyễn Bá Hoàng (anhhackta)。MIT — 注明来源即可使用。"
+      },
+      ja: {
+        nav_features: "機能", nav_how: "仕組み", nav_install: "インストール",
+        nav_privacy: "プライバシー", nav_versions: "バージョン", nav_faq: "FAQ",
+        eyebrow: "v1.0.2 · Local-first · MIT",
+        title: "コピーを残し、必要な断片を貼り戻す。",
+        lead: "テキストと画像のクリップボード履歴を端末内に保存。Paste Multi、ピン、PIN ロック、暗号化エクスポート対応。Chrome / Edge。",
+        download: "最新 ZIP をダウンロード", docs: "ドキュメント",
+        meta1: "Manifest V3", meta2: "クリップボードのクラウド同期なし", meta3: "Load unpacked で導入",
+        mock_lock: "PIN 準備OK", mock_tab_text: "テキスト", mock_tab_img: "画像",
+        mock_tab_data: "データ", mock_tab_settings: "設定",
+        mock_i1t: "API_KEY=prod_••••", mock_pinned: "ピン留め", mock_i1d: "セッションをまたいで保持",
+        mock_i3t: "会議メモ — Q2 ローンチ", mock_temp: "一時", mock_i3d: "ブラウザ終了で消去",
+        feat_title: "日常のクリップボード作業向け",
+        feat_sub: "v1.0.2 は全面刷新：IndexedDB、画像、Paste Multi、PIN — それでも 100% ローカル。",
+        f1t: "テキスト + 画像", f1d: "コピー時の自動保存、右クリック取得、システムクリップボードからの画像貼り付け、サムネイルと検索。",
+        f2t: "スマート分類", f2d: "text / link / email / 数字 / code を付与。重要項目をピン留めすればクリーンアップで消えません。",
+        f3t: "Paste Multi", f3d: "入力欄で Ctrl+V すると履歴を選択 — 候補ボックスまたは 1–0。Ctrl+Shift+V は通常貼り付け。",
+        f4t: "一時 / 永続", f4d: "「永続保存」をオフにするとテキストはセッション限り。画像も同じスイッチに従います。",
+        f5t: "PIN ロック", f5d: "任意の 4〜6 桁 PIN でポップアップ・管理画面・Paste Multi を保護。タイムアウトと試行制限あり。",
+        f6t: "バックアップと整理", f6d: "JSON の入出力（任意でパスワード暗号化）、.txt 書き出し、古い項目の自動削除、一括削除。",
+        how_title: "仕組み",
+        how_sub: "小さな Manifest V3 拡張：content script が監視、service worker が書き込み、IndexedDB が保存、UI が読み取り。",
+        how_cap_title: "取得フロー",
+        how_c1: "ページでコピー／切り取り／貼り付け（または右クリック保存）。",
+        how_c2: "content script が型付きメッセージを background に送る。",
+        how_c3: "履歴は IndexedDB へ。一時テキストは session storage。",
+        how_c4: "ポップアップ／管理画面が検索・ピン・ページング付きで更新。",
+        how_paste_title: "Paste Multi",
+        how_p1: "<strong>ボックスモード：</strong>Ctrl+V でフローティング選択（↑↓、Enter、1–0）。",
+        how_p2: "<strong>クイックモード：</strong>Ctrl+V の後、短い時間内に数字キー。",
+        how_p3: "Ctrl+Shift+V またはページの貼り付けメニューでバイパス。",
+        how_p4: "PIN が「毎回開く」のとき、解除まで Paste Multi はロック。",
+        install_title: "ZIP からインストール",
+        install_sub: "Chrome ウェブストア未掲載。デベロッパーモード → パッケージ化されていない拡張機能を読み込む。",
+        s1: "GitHub Releases の Latest ZIP を<strong>ダウンロード</strong>。",
+        s2: "フォルダへ<strong>解凍</strong>し、構成を崩さない。",
+        s3: "<strong>chrome://extensions</strong> または <strong>edge://extensions</strong> を開きデベロッパーモードをオン。",
+        s4: "<strong>パッケージ化されていない拡張機能を読み込む</strong> → <code>manifest.json</code> があるフォルダを選択。",
+        shortcuts_title: "便利な操作",
+        th_action: "操作", th_how: "方法",
+        sc1a: "テキスト保存", sc1b: "Ctrl+C（有効時）/ 右クリック",
+        sc2a: "画像保存", sc2b: "画像を右クリック / 画像 → 貼り付け",
+        sc3a: "履歴から貼り付け", sc3b: "Paste Multi + Ctrl+V",
+        sc4a: "通常の貼り付け", sc4b: "Ctrl+Shift+V",
+        sc5a: "管理画面", sc5b: "ポップアップ見出しのボタン",
+        readme_link: "英語 README を開く",
+        privacy_title: "プライバシー設計",
+        privacy_sub: "クリップボード内容は分析や遠隔同期のために端末外へ送られません。",
+        pr1t: "ローカルのみ", pr1d: "履歴は IndexedDB。設定は chrome.storage.sync / local。遠隔クリップボード API なし。",
+        pr2t: "PIN は UI ロック", pr2d: "PIN は PBKDF2 でハッシュ。UI / Paste Multi の保護用で、DB 全体の静止時暗号化ではありません。",
+        pr3t: "暗号化エクスポート", pr3d: "パスワード付き書き出しは AES-GCM。パスワードを失うと開けません。",
+        ver_title: "バージョン",
+        ver_sub: "初回公開版は残しています。現行ラインは継続更新します。",
+        ver_latest_tag: "Latest · main",
+        ver_latest_body: "全面刷新：テキスト+画像、Paste Multi、PIN、IndexedDB、入出力、管理ページ。長期ライン。",
+        ver_latest_btn: "v1.0.2 リリースを開く",
+        ver_legacy_tag: "初回 · legacy-old",
+        ver_legacy_body: "最初の公開版：テキストのみ・旧フラット構成。ダウンロードと比較用に保持。",
+        ver_legacy_btn: "Ver1.1.1 リリースを開く",
+        faq_title: "FAQ", faq_sub: "インストールと利用の短い回答。",
+        q1: "なぜストア未掲載ですか？",
+        a1: "現在は GitHub Releases + Load unpacked で配布。ストア公開は将来の可能性あり。ZIP 経路は継続します。",
+        q2: "Paste Multi はすべての Ctrl+V を置き換えますか？",
+        a2: "Paste Multi 有効かつ編集可能な欄にフォーカスがあるときのみ。通常貼り付けは Ctrl+Shift+V など。",
+        q3: "クリップボードはアップロードされますか？",
+        a3: "いいえ。履歴は端末内。ランディングは Google Fonts を読み込むことがありますが、拡張自体はクリップボードを送信しません。",
+        q4: "1.1.1 はどうなりましたか？",
+        a4: "初回公開版として残っています（tag Ver1.1.1、branch legacy-old）。Latest ではありません — 現行は v1.0.2。",
+        q5: "ライセンスは？",
+        a5: "MIT。著作権表示と作者クレジットを残す限り、利用・改変・再配布が可能です。",
+        donate: "支援する",
+        copy: "© 2025–2026 Nguyễn Bá Hoàng (anhhackta)。MIT — クレジット表示があれば自由に利用可。"
       }
     };
 
-    const $ = (id) => document.getElementById(id);
-    let lang = localStorage.getItem("cl-lang") || "vi";
+    const htmlKeys = new Set(["s1", "s2", "s3", "s4", "how_p1", "how_p2", "how_p3", "how_p4"]);
+    const $ = (sel, root) => (root || document).querySelector(sel);
+    const $$ = (sel, root) => Array.from((root || document).querySelectorAll(sel));
+
+    function readStoredLang() {
+      const raw = localStorage.getItem("cl-lang");
+      if (raw === "jp") return "ja";
+      if (LANGS.includes(raw)) return raw;
+      return "en";
+    }
+
+    let lang = readStoredLang();
     let theme = localStorage.getItem("cl-theme") || "dark";
 
     function applyTheme() {
       document.documentElement.setAttribute("data-theme", theme);
+      document.querySelector('meta[name="theme-color"]').setAttribute(
+        "content",
+        theme === "light" ? "#f4f5f7" : "#14171c"
+      );
       localStorage.setItem("cl-theme", theme);
     }
 
     function applyLang() {
-      const t = dict[lang];
-      document.documentElement.lang = lang;
-      $("btnLang").textContent = lang === "vi" ? "VN" : "EN";
-      $("t_title").textContent = t.title;
-      $("t_lead").textContent = t.lead;
-      $("t_download").textContent = t.download;
-      $("t_feat_title").textContent = t.feat_title;
-      $("t_feat_sub").textContent = t.feat_sub;
-      $("t_f1t").textContent = t.f1t; $("t_f1d").textContent = t.f1d;
-      $("t_f2t").textContent = t.f2t; $("t_f2d").textContent = t.f2d;
-      $("t_f3t").textContent = t.f3t; $("t_f3d").textContent = t.f3d;
-      $("t_f4t").textContent = t.f4t; $("t_f4d").textContent = t.f4d;
-      $("t_install_title").textContent = t.install_title;
-      $("t_install_sub").textContent = t.install_sub;
-      $("t_s1").innerHTML = t.s1;
-      $("t_s2").innerHTML = t.s2;
-      $("t_s3").innerHTML = t.s3;
-      $("t_s4").innerHTML = t.s4;
-      $("t_legacy_title").textContent = t.legacy_title;
-      $("t_legacy_body").innerHTML = t.legacy_body;
-      $("t_legacy_btn").textContent = t.legacy_btn;
-      $("t_latest_btn").textContent = t.latest_btn;
-      $("t_donate").textContent = t.donate;
-      $("t_copy").textContent = t.copy;
+      const t = dict[lang] || dict.en;
+      document.documentElement.lang = lang === "zh" ? "zh-CN" : lang;
+      const select = $("#langSelect");
+      if (select) select.value = lang;
+
+      $$("[data-i18n]").forEach((el) => {
+        const key = el.getAttribute("data-i18n");
+        if (!key || t[key] == null) return;
+        if (htmlKeys.has(key) || el.hasAttribute("data-i18n-html")) {
+          el.innerHTML = t[key];
+        } else {
+          el.textContent = t[key];
+        }
+      });
+
+      $$("[data-i18n-html]").forEach((el) => {
+        const key = el.getAttribute("data-i18n-html");
+        if (key && t[key] != null) el.innerHTML = t[key];
+      });
+
       localStorage.setItem("cl-lang", lang);
     }
 
-    $("btnTheme").addEventListener("click", () => {
+    $("#btnTheme").addEventListener("click", () => {
       theme = theme === "dark" ? "light" : "dark";
       applyTheme();
     });
-    $("btnLang").addEventListener("click", () => {
-      lang = lang === "vi" ? "en" : "vi";
+    $("#langSelect").addEventListener("change", (e) => {
+      lang = e.target.value;
       applyLang();
     });
 
