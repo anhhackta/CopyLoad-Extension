@@ -1,263 +1,100 @@
-# CopyLoad - Chrome Extension
+# CopyLoad
 
 <div align="center">
   <img src="icons/icon128.png" alt="CopyLoad Logo" width="128" height="128">
-  <h3>Smart Clipboard Storage and Management</h3>
-  <p>A powerful Chrome/Edge extension for storing, managing, and searching copied text</p>
-  
-  [![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-Install-blue?logo=google-chrome)](https://chrome.google.com/webstore)
-  [![Edge Add-ons](https://img.shields.io/badge/Edge%20Add--ons-Install-blue?logo=microsoft-edge)](https://microsoftedge.microsoft.com/addons)
+  <h3>Clipboard history — text & images</h3>
+  <p>Chrome/Edge extension (Manifest V3). Data stays on your device; nothing is uploaded.</p>
+
+  [![Version](https://img.shields.io/badge/version-1.0.2-blue.svg)](https://github.com/anhhackta/CopyLoad-Extension/releases)
   [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-  [![Language](https://img.shields.io/badge/Language-Vietnamese-red.svg)](README.md)
-  [![Language](https://img.shields.io/badge/Language-English-blue.svg)](README_EN.md)
+  [![Language](https://img.shields.io/badge/VI-red.svg)](README.md)
+  [![Language](https://img.shields.io/badge/EN-blue.svg)](README_EN.md)
+  [![Language](https://img.shields.io/badge/JP-orange.svg)](README_JP.md)
 </div>
+
 <p align="center">
-<a href="https://github.com/anhhackta/CopyLoad-Extension/blob/main/README.md">Vietnamese</a > | English | <a href="https://github.com/anhhackta/CopyLoad-Extension/blob/main/README_JP.md">日本語</a>
-</p >
----
-
-## 🌟 Key Features
-
-### ✨ **Smart Storage**
-- **Auto-save**: Automatically save text when using Ctrl+C
-- **Manual save**: Save selected text via right-click
-- **Smart classification**: Support 2 storage types - temporary and permanent
-- **Smart tagging**: Display "temp" tag for temporary clipboards
-
-### 🎨 **Modern Interface**
-- **Dark/Light Mode**: Support 3 interface modes (Light/Dark/System)
-- **Multi-language**: Support Vietnamese and English
-- **Responsive**: Optimized interface for all screen sizes
-- **Modern colors**: Beautiful and professional color scheme
-
-### 🔍 **Search and Management**
-- **Real-time search**: Fast search in clipboard list
-- **Smart counter**: Display number of saved clipboards
-- **Quick copy**: Copy text back with one click
-- **Smart delete**: Delete individual items or all with confirmation
-
-### 💾 **Flexible Storage**
-- **"Save to Device" Toggle**: 
-  - **ON**: New clipboards → permanent storage (no temp tag, won't lose when browser closes)
-  - **OFF**: New clipboards → temporary storage (with temp tag, lost when browser closes)
-- **Download**: Export all list to .txt file
-- **Unlimited**: Save unlimited clipboards
-
----
-[![Gif showing the conversion](https://github.com/user-attachments/assets/a27b4ebe-01f8-44df-8c4a-2400dd1aa14f)](https://github.com/user-attachments/assets/a27b4ebe-01f8-44df-8c4a-2400dd1aa14f)
-## 📦 Installation
-
-### Method 1: Install from ZIP file (Recommended)
-
-1. **Download ZIP file** from [releases](../../releases) or other sources
-2. **Extract** ZIP file to desired folder
-3. **Open Chrome/Edge** and go to `chrome://extensions/`
-4. **Enable "Developer mode"**
-5. **Click "Load unpacked"**
-6. **Select folder** containing extracted extension
-7. **Done!** Extension will appear on toolbar
-
-### Method 2: Install from Chrome Web Store (When available - ❌)
-
-1. **Visit** [Chrome Web Store](https://chrome.google.com/webstore)
-2. **Search** for "CopyLoad"
-3. **Click "Add to Chrome"**
-4. **Confirm** installation
-
-### Method 3: Install from Edge Add-ons (When available - ❌ )
-
-1. **Visit** [Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons)
-2. **Search** for "CopyLoad"
-3. **Click "Get"**
-4. **Confirm** installation
+  <a href="README.md">Tiếng Việt</a> · <b>English</b> · <a href="README_JP.md">日本語</a>
+  · <a href="https://anhhackta.github.io/CopyLoad-Extension/">Website</a>
+  · <a href="https://github.com/anhhackta/CopyLoad-Extension/releases">Releases</a>
+</p>
 
 ---
 
-## 🚀 Detailed Usage Guide
+## Features (v1.0.2)
 
-### 📋 **Save Clipboard**
-
-#### Auto-save (Ctrl+C)
-1. **Select text** on webpage
-2. **Press Ctrl+C** (or Cmd+C on Mac)
-3. **Text will be saved** automatically to list
-4. **Check tag**: If has "temp" tag = temporary storage, no tag = permanent storage
-
-#### Manual save (Right-click)
-1. **Select text** on webpage
-2. **Right-click**
-3. **Choose "Save to Clipboard"**
-4. **Text will be saved** permanently (no temp tag)
-
-### ⚙️ **Storage Settings**
-
-#### Toggle "Save when Ctrl+C"
-- **ON**: Auto-save when Ctrl+C
-- **OFF**: Don't save when Ctrl+C
-
-#### Toggle "Save to Device" (Important!)
-- **ON**: New clipboards → permanent storage (no temp tag, won't lose when browser closes)
-- **OFF**: New clipboards → temporary storage (with temp tag, lost when browser closes)
-
-### 🎨 **Interface Customization**
-
-#### Change language
-1. **Click language dropdown** (VN/EN)
-2. **Select desired language**
-3. **Interface will change** immediately
-
-#### Change theme
-1. **Click theme dropdown** (🌙)
-2. **Choose mode**: ☀️ Light / 🌙 Dark / 🖥️ System
-3. **Interface will change** immediately
-
-### 🔍 **Search and Management**
-
-#### Search clipboard
-1. **Enter keywords** in search box
-2. **Results display** real-time
-3. **Counter shows** number of results
-
-#### Copy clipboard
-1. **Click "Copy" button** next to clipboard
-2. **Text will be copied** to system clipboard
-3. **Success notification** will appear
-
-#### Delete clipboard
-1. **Click "Del" button** next to clipboard
-2. **Clipboard will be deleted** from list
-3. **Success notification** will appear
-
-#### Delete all
-1. **Click "Clear All" button**
-2. **Confirm** in modal
-3. **All clipboards** will be deleted
-
-#### Download list
-1. **Click "Download" button**
-2. **.txt file** will be downloaded
-3. **Contains all saved** clipboards
+- **Text capture**: auto-save on Ctrl+C / cut / paste; or right-click → *Save to CopyLoad*
+- **Images**: right-click → *Save image to CopyLoad*, or paste from the system clipboard in the popup
+- **Classify & pin**: text / link / email / number / code; pin important items
+- **Temp vs permanent**: turn off “Save permanently” for session-only text (and no image saves)
+- **Paste Multi**: Ctrl+V in an input to pick a saved snippet (suggestion box or quick 1–0 mode)
+- **PIN lock**: 4–6 digit PIN for popup / manager / Paste Multi
+- **Data tools**: export/import JSON (optional password encryption), plain .txt export, auto-delete old items, bulk delete
+- **UI**: light / dark / system; Vietnamese & English; compact popup + full manager page
+- **Storage**: IndexedDB for history; sync/local settings; no analytics, no network calls
 
 ---
 
-## 🔧 File Structure
+## Install from ZIP
+
+1. Download the latest build from [Releases](https://github.com/anhhackta/CopyLoad-Extension/releases/latest)
+2. Unzip the folder
+3. Open `chrome://extensions` (or `edge://extensions`)
+4. Enable **Developer mode**
+5. **Load unpacked** → select the folder that contains `manifest.json`
+
+> Not on the Chrome Web Store / Edge Add-ons yet.
+
+---
+
+## Quick usage
+
+| Task | How |
+|------|-----|
+| Save text | Ctrl+C (if enabled) or right-click |
+| Save image | Right-click image, or Images tab → Paste image |
+| Paste from history | Enable Paste Multi → Ctrl+V in an input |
+| Normal paste | Ctrl+Shift+V or right-click Paste |
+| Full manager | Open-manager button in the popup |
+| Lock | Enable PIN in Settings |
+
+---
+
+## Layout
 
 ```
 CopyLoad/
-├── manifest.json          # Extension configuration
-├── background.js          # Service worker for background processing
-├── content.js             # Content script for event listening
-├── popup.html             # Popup interface
-├── popup.css              # CSS for popup
-├── popup.js               # JavaScript for popup
-├── icons/                 # Icons folder
-│   ├── icon16.png        # 16x16 icon
-│   ├── icon48.png        # 48x48 icon
-│   ├── icon128.png       # 128x128 icon
-│   └── icon.svg          # Original SVG icon
-├── README.md              # Vietnamese guide
-├── README_EN.md           # English guide
-└── LICENSE                # MIT license
+├── manifest.json
+├── icons/
+├── src/
+│   ├── background/     # service worker
+│   ├── content/        # copy/paste + Paste Multi picker
+│   ├── app/            # popup + manager UI
+│   └── shared/         # constants, i18n, db, settings, lock, crypto
+├── index.html          # landing (GitHub Pages)
+├── README.md / README_EN.md / README_JP.md
+└── LICENSE             # MIT
 ```
 
----
-
-## 🎯 Detailed Features
-
-### 📊 **Smart Statistics**
-- **Real-time counter**: Display number of clipboards
-- **Classification**: "Temp" tag for temporary clipboards
-- **Search**: Support fast search functionality
-
-### 🔄 **Sync and Storage**
-- **Persistent storage**: Permanent storage in `chrome.storage.local`
-- **Session storage**: Temporary storage in `chrome.storage.session`
-- **Auto-sync**: Automatic sync between tabs
-
-### 🛡️ **Security and Privacy**
-- **Local storage**: Data only stored on local machine
-- **No data transmission**: No clipboard data sent to servers
-- **Minimal permissions**: Only request necessary permissions
+The `legacy-old` branch keeps the first public build (v1.1.1, text-only, older architecture).
 
 ---
 
-## 🐛 Common Issues and Solutions
+## Privacy
 
-### Extension not working
-1. **Check permissions**: Ensure extension has access to webpage
-2. **Reload extension**: Go to `chrome://extensions/` and click "Reload"
-3. **Check console**: Open DevTools to see errors
-
-### Ctrl+C not saving
-1. **Check toggle**: Ensure "Save when Ctrl+C" toggle is ON
-2. **Check webpage**: Some websites may block copy events
-3. **Try right-click**: Use right-click to save manually
-
-### Clipboard lost
-1. **Check "Save to Device" toggle**: 
-   - If OFF: Clipboards with "temp" tag will be lost when browser closes
-   - If ON: Clipboards will be saved permanently
-2. **Check storage**: Go to DevTools > Application > Storage
-
-### "Temp" tag not showing
-1. **Check "Save to Device" toggle**: Must be OFF to have temp tags
-2. **Reload extension**: Go to `chrome://extensions/` and click "Reload"
-3. **Check logic**: Temp tags only show for clipboards in temp storage
+Clipboard data stays local (IndexedDB / `chrome.storage`). Nothing is sent off-device. PIN is a UI lock (PBKDF2); IndexedDB itself is not fully encrypted — optional AES-GCM applies to export files when you set a password.
 
 ---
 
-## 🤝 Contributing
+## License
 
-We welcome all contributions! Please:
-
-1. **Fork** this repository
-2. **Create new branch** (`git checkout -b feature/AmazingFeature`)
-3. **Commit changes** (`git commit -m 'Add some AmazingFeature'`)
-4. **Push to branch** (`git push origin feature/AmazingFeature`)
-5. **Create Pull Request**
-
-### 🐛 Report bugs
-- **Create Issue** with detailed description
-- **Attach screenshots** if possible
-- **Describe steps to reproduce** the bug
-
-### 💡 Suggest features
-- **Create Issue** with "enhancement" label
-- **Describe in detail** the desired feature
-- **Explain benefits** of the feature
+[MIT](LICENSE) — use, modify, and redistribute freely as long as you **keep the copyright notice / credit the author**.
 
 ---
 
-## 📄 License
+## Author
 
-This project is distributed under the MIT license. See [LICENSE](LICENSE) file for more details.
+**Nguyễn Bá Hoàng** ([@anhhackta](https://github.com/anhhackta))
 
----
-
-## 👨‍💻 Author
-
-**Nguyen Ba Hoang** - Supporting ideas
-
-- 🌐 **Website**: [anhhackta.com](https://portfolio.bahoang.com)
-- 📧 **Email**: [contact@anhhackta.com](mailto:contact@anhhackta.com)
-- 💬 **Facebook**: [@anhhackta](https://facebook.com/anhhackta.official)
-- 💰 **Support**: [PayPal](https://paypal.me/bahoang2k2)
-- 📂 **GitHub**: [@anhhackta](https://github.com/anhhackta)
-
----
-
-## ⭐ Rating
-
-If you like this extension, please:
-
-- ⭐ **Star** this repository
-- 📝 **Leave a review** on Chrome Web Store
-- 💰 **Support** the author via PayPal
-- 📢 **Share** with friends
-
----
-
-<div align="center">
-  <p>Made with ❤️ by <a href="https://github.com/anhhackta">Nguyen Ba Hoang</a></p>
-  <p>Support the project: <a href="https://paypal.me/bahoang2k2">PayPal</a> | <a href="https://facebook.com/anhhackta.official">Facebook</a></p>
-</div> 
+- Website: [anhhackta.com](https://anhhackta.com) · [GitHub Pages](https://anhhackta.github.io/CopyLoad-Extension/)
+- Facebook: [@anhhackta.official](https://facebook.com/anhhackta.official)
+- Support: [Buy Me a Coffee](https://www.buymeacoffee.com/anhhackta)

@@ -1,260 +1,570 @@
 <!DOCTYPE html>
-<html lang="vi">
-
+<html lang="vi" data-theme="dark">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CopyLoad - Manager</title>
-  <link rel="stylesheet" href="fullpage.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CopyLoad — Clipboard history for Chrome & Edge</title>
+  <meta name="description" content="CopyLoad lưu lịch sử clipboard (văn bản & ảnh) trên máy bạn. Paste Multi, PIN lock, xuất/nhập dữ liệu. Chrome & Edge.">
+  <link rel="icon" href="icons/icon128.png">
+  <meta property="og:title" content="CopyLoad — Clipboard Manager">
+  <meta property="og:description" content="Lịch sử clipboard thông minh: text + ảnh, Paste Multi, PIN. Dữ liệu chỉ lưu local.">
+  <meta property="og:image" content="icons/logo.png">
+  <meta name="theme-color" content="#14171c">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root, :root[data-theme="dark"] {
+      --bg: #14171c;
+      --bg-deep: #0e1014;
+      --surface: #1b1f26;
+      --hover: #252a33;
+      --border: #2a2f38;
+      --text: #e6e9ee;
+      --muted: #8b94a1;
+      --accent: #8b8cf6;
+      --accent-weak: #23254a;
+      --accent-line: #4a4c99;
+      --on-accent: #101217;
+      --c-link: #6cb6ff;
+      --c-email: #56d4bc;
+      --shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+      color-scheme: dark;
+    }
+    :root[data-theme="light"] {
+      --bg: #f4f5f7;
+      --bg-deep: #e8eaee;
+      --surface: #ffffff;
+      --hover: #eef0f3;
+      --border: #e3e6ea;
+      --text: #1b1f24;
+      --muted: #636c76;
+      --accent: #4f46e5;
+      --accent-weak: #eceafd;
+      --accent-line: #b9b5f3;
+      --on-accent: #ffffff;
+      --c-link: #0969da;
+      --c-email: #0e8a7d;
+      --shadow: 0 24px 64px rgba(27, 31, 36, 0.12);
+      color-scheme: light;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font: 400 17px/1.55 "Source Sans 3", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+    h1, h2, h3 { font-family: Outfit, system-ui, sans-serif; font-weight: 650; letter-spacing: -0.02em; margin: 0; }
+    p { margin: 0; }
+    a { color: var(--c-link); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .grain {
+      pointer-events: none;
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      opacity: 0.04;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    .shell { position: relative; z-index: 1; }
+
+    .top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 20px 24px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: inherit;
+      text-decoration: none;
+    }
+    .brand:hover { text-decoration: none; }
+    .brand img {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      box-shadow: 0 0 0 1px var(--border);
+    }
+    .brand-name {
+      font-family: Outfit, sans-serif;
+      font-weight: 700;
+      font-size: 1.15rem;
+      letter-spacing: -0.03em;
+    }
+    .top-actions { display: flex; gap: 8px; }
+    .icon-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      font: 600 13px Outfit, sans-serif;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .icon-btn:hover { background: var(--hover); border-color: var(--accent-line); }
+
+    /* Hero — one composition, brand-first */
+    .hero {
+      position: relative;
+      min-height: calc(100vh - 80px);
+      display: grid;
+      align-items: end;
+      overflow: hidden;
+      isolation: isolate;
+    }
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background:
+        radial-gradient(900px 480px at 12% 18%, color-mix(in srgb, var(--accent) 28%, transparent), transparent 62%),
+        radial-gradient(700px 420px at 88% 8%, color-mix(in srgb, var(--c-email) 16%, transparent), transparent 55%),
+        linear-gradient(180deg, var(--bg-deep) 0%, var(--bg) 55%, var(--bg) 100%);
+    }
+    .hero-inner {
+      max-width: 1080px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 48px 24px 72px;
+      display: grid;
+      gap: 28px;
+      justify-items: start;
+    }
+    .hero-mark {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      animation: rise 0.7s ease both;
+    }
+    .hero-mark img {
+      width: 88px;
+      height: 88px;
+      border-radius: 22px;
+      box-shadow: var(--shadow), 0 0 0 1px var(--border);
+    }
+    .hero-brand {
+      font-family: Outfit, sans-serif;
+      font-size: clamp(2.6rem, 7vw, 4.4rem);
+      font-weight: 700;
+      letter-spacing: -0.045em;
+      line-height: 0.95;
+    }
+    .hero-brand span {
+      display: block;
+      font-size: 0.28em;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .hero h1 {
+      max-width: 16ch;
+      font-size: clamp(1.55rem, 3.4vw, 2.15rem);
+      line-height: 1.2;
+      animation: rise 0.7s 0.08s ease both;
+    }
+    .hero .lead {
+      max-width: 42ch;
+      color: var(--muted);
+      font-size: 1.08rem;
+      animation: rise 0.7s 0.14s ease both;
+    }
+    .cta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      animation: rise 0.7s 0.2s ease both;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 18px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font: 600 15px Outfit, sans-serif;
+      text-decoration: none;
+      cursor: pointer;
+      transition: transform 0.15s, background 0.15s, border-color 0.15s;
+    }
+    .btn:hover { transform: translateY(-1px); text-decoration: none; background: var(--hover); }
+    .btn:active { transform: none; }
+    .btn-primary {
+      background: var(--accent);
+      color: var(--on-accent);
+      border-color: transparent;
+    }
+    .btn-primary:hover { filter: brightness(1.06); background: var(--accent); }
+    .btn-ghost { background: transparent; }
+
+    .mock {
+      width: min(100%, 420px);
+      margin-top: 8px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      animation: rise 0.8s 0.28s ease both;
+    }
+    .mock-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      font-family: Outfit, sans-serif;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .mock-bar img { width: 22px; height: 22px; border-radius: 6px; }
+    .mock-list { padding: 10px; display: grid; gap: 8px; }
+    .mock-item {
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: var(--hover);
+      border: 1px solid transparent;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .mock-item strong { display: block; color: var(--text); font-weight: 600; margin-bottom: 2px; }
+    .mock-item.pin { border-color: var(--accent-line); background: var(--accent-weak); }
+    .chip {
+      display: inline-block;
+      margin-top: 4px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      background: color-mix(in srgb, var(--c-link) 18%, transparent);
+      color: var(--c-link);
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: none; }
+    }
+
+    section.block {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 64px 24px;
+    }
+    section.block h2 {
+      font-size: clamp(1.5rem, 3vw, 1.9rem);
+      margin-bottom: 10px;
+    }
+    section.block > .sub {
+      color: var(--muted);
+      max-width: 52ch;
+      margin-bottom: 28px;
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 18px 28px;
+      border-top: 1px solid var(--border);
+      padding-top: 8px;
+    }
+    .feat {
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+    .feat h3 { font-size: 1.05rem; margin-bottom: 6px; }
+    .feat p { color: var(--muted); font-size: 0.95rem; }
+
+    .steps {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 14px;
+      counter-reset: step;
+    }
+    .steps li {
+      display: grid;
+      grid-template-columns: 36px 1fr;
+      gap: 14px;
+      align-items: start;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .steps li::before {
+      counter-increment: step;
+      content: counter(step);
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      background: var(--accent-weak);
+      color: var(--accent);
+      font: 700 14px Outfit, sans-serif;
+    }
+    .steps strong { color: var(--text); }
+
+    .band {
+      background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--accent-weak) 55%, transparent), transparent);
+      border-block: 1px solid var(--border);
+    }
+
+    footer {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 40px 24px 56px;
+      color: var(--muted);
+      font-size: 0.92rem;
+      display: grid;
+      gap: 12px;
+      text-align: center;
+    }
+    footer nav { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
+    footer .copy { font-size: 0.85rem; }
+
+    @media (max-width: 640px) {
+      .hero-mark img { width: 64px; height: 64px; border-radius: 16px; }
+      .hero-inner { padding-bottom: 48px; }
+      .mock { width: 100%; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+  </style>
 </head>
-
 <body>
-  <div class="app">
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <div class="sidebar-header">
-        <div class="logo">
-          <div class="logo-icon">CL</div>
-          <div class="logo-text">
-            <span class="logo-name">CopyLoad</span>
-            <div class="logo-version">
-              <span>v2.0.1</span>
-              <span class="premium-badge" id="premiumBadge">FREE</span>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="shell">
+    <header class="top">
+      <a class="brand" href="#">
+        <img src="icons/icon48.png" alt="">
+        <span class="brand-name">CopyLoad</span>
+      </a>
+      <div class="top-actions">
+        <button type="button" class="icon-btn" id="btnTheme" title="Theme" aria-label="Toggle theme">◐</button>
+        <button type="button" class="icon-btn" id="btnLang" title="Language">VN</button>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div class="hero-bg" aria-hidden="true"></div>
+      <div class="hero-inner">
+        <div class="hero-mark">
+          <img src="icons/logo.png" alt="CopyLoad">
+          <div class="hero-brand"><span>v1.0.2</span>CopyLoad</div>
+        </div>
+        <h1 id="t_title">Lưu mỗi lần copy. Dán lại đúng đoạn cần.</h1>
+        <p class="lead" id="t_lead">Quản lý lịch sử clipboard (văn bản &amp; ảnh) ngay trên máy — Paste Multi, ghim, PIN lock. Chrome &amp; Edge.</p>
+        <div class="cta">
+          <a class="btn btn-primary" id="btnDownload" href="https://github.com/anhhackta/CopyLoad-Extension/releases/latest" target="_blank" rel="noopener">
+            <span id="t_download">Tải bản mới nhất</span>
+          </a>
+          <a class="btn btn-ghost" href="https://github.com/anhhackta/CopyLoad-Extension" target="_blank" rel="noopener">GitHub</a>
+        </div>
+        <div class="mock" aria-hidden="true">
+          <div class="mock-bar">
+            <img src="icons/icon48.png" alt="">
+            CopyLoad
+          </div>
+          <div class="mock-list">
+            <div class="mock-item pin">
+              <strong>API_KEY=…</strong>
+              Mật khẩu tạm · đã ghim
+            </div>
+            <div class="mock-item">
+              <strong>https://anhhackta.com</strong>
+              <span class="chip">link</span>
+            </div>
+            <div class="mock-item">
+              <strong>Xin chào — đoạn vừa copy</strong>
+              12 giây trước
             </div>
           </div>
         </div>
       </div>
+    </section>
 
-      <nav class="sidebar-nav">
-        <button class="nav-item active" data-tab="text">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-            <polyline points="14 2 14 8 20 8"></polyline>
-          </svg>
-          <span data-i18n="textClipboard">Text Clipboard</span>
-          <span class="nav-count" id="navTextCount">0</span>
-        </button>
-        <button class="nav-item" data-tab="images">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
-            <circle cx="8.5" cy="8.5" r="1.5"></circle>
-            <polyline points="21 15 16 10 5 21"></polyline>
-          </svg>
-          <span data-i18n="imageClipboard">Image Clipboard</span>
-          <span class="nav-count" id="navImageCount">0</span>
-        </button>
+    <section class="block" id="features">
+      <h2 id="t_feat_title">Làm được gì</h2>
+      <p class="sub" id="t_feat_sub">Bản 1.0.2 viết lại kiến trúc: IndexedDB, ảnh, Paste Multi, khóa PIN — vẫn 100% local.</p>
+      <div class="features">
+        <article class="feat">
+          <h3 id="t_f1t">Text + ảnh</h3>
+          <p id="t_f1d">Tự lưu khi copy; chuột phải lưu text/ảnh; phân loại link, email, số, code.</p>
+        </article>
+        <article class="feat">
+          <h3 id="t_f2t">Paste Multi</h3>
+          <p id="t_f2d">Ctrl+V trong ô nhập để chọn đoạn đã lưu — hộp gợi ý hoặc phím 1–0.</p>
+        </article>
+        <article class="feat">
+          <h3 id="t_f3t">PIN &amp; quyền riêng tư</h3>
+          <p id="t_f3d">Khóa giao diện bằng PIN 4–6 số. Không analytics, không gửi clipboard đi đâu.</p>
+        </article>
+        <article class="feat">
+          <h3 id="t_f4t">Xuất / nhập</h3>
+          <p id="t_f4d">Backup JSON (có thể mã hóa mật khẩu), tải .txt, tự xóa mục cũ, ghim mục quan trọng.</p>
+        </article>
+      </div>
+    </section>
 
-        <div class="nav-divider"></div>
+    <div class="band">
+      <section class="block" id="install">
+        <h2 id="t_install_title">Cài đặt từ ZIP</h2>
+        <p class="sub" id="t_install_sub">Chưa lên Store — tải từ Releases rồi nạp unpacked.</p>
+        <ol class="steps">
+          <li id="t_s1"><strong>Tải ZIP</strong> bản Latest trên GitHub Releases.</li>
+          <li id="t_s2"><strong>Giải nén</strong> ra một thư mục (giữ nguyên cấu trúc).</li>
+          <li id="t_s3">Mở <strong>chrome://extensions</strong> hoặc <strong>edge://extensions</strong>, bật Developer mode.</li>
+          <li id="t_s4"><strong>Load unpacked</strong> → chọn thư mục có <code>manifest.json</code>.</li>
+        </ol>
+      </section>
+    </div>
 
-        <button class="nav-item nav-premium" data-tab="premium" id="premiumNav">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polygon
-              points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
-            </polygon>
-          </svg>
-          <span data-i18n="premium">Premium</span>
-        </button>
+    <section class="block">
+      <h2 id="t_legacy_title">Bản đầu tiên</h2>
+      <p class="sub" id="t_legacy_body">
+        Release <strong>v1.1.1</strong> là bản công khai đầu (chỉ text, kiến trúc cũ), vẫn tải được để đối chiếu.
+        Nhánh mã nguồn: <code>legacy-old</code>. Bản <strong>v1.0.2</strong> là dòng chính, sẽ cập nhật lâu dài.
+      </p>
+      <div class="cta">
+        <a class="btn" href="https://github.com/anhhackta/CopyLoad-Extension/releases/tag/v1.1.1" target="_blank" rel="noopener" id="t_legacy_btn">Xem bản đầu v1.1.1</a>
+        <a class="btn btn-primary" href="https://github.com/anhhackta/CopyLoad-Extension/releases/latest" target="_blank" rel="noopener" id="t_latest_btn">Bản hiện tại v1.0.2</a>
+      </div>
+    </section>
+
+    <footer>
+      <nav>
+        <a href="https://github.com/anhhackta/CopyLoad-Extension" target="_blank" rel="noopener">Repo</a>
+        <a href="https://github.com/anhhackta/CopyLoad-Extension/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a>
+        <a href="https://facebook.com/anhhackta.official" target="_blank" rel="noopener">Facebook</a>
+        <a href="https://www.buymeacoffee.com/anhhackta" target="_blank" rel="noopener" id="t_donate">Ủng hộ</a>
       </nav>
-
-      <div class="sidebar-footer">
-        <div class="storage-info">
-          <div class="storage-label">
-            <span data-i18n="storage">Dung lượng</span>
-            <span id="storagePercent">0%</span>
-          </div>
-          <div class="storage-bar-full">
-            <div class="storage-fill-full" id="storageFillFull"></div>
-          </div>
-          <span class="storage-size" id="storageSizeFull">0 MB / 500 MB</span>
-        </div>
-
-        <button class="settings-btn" id="toggleThemeFull">
-          <svg id="themeIconFull" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-          </svg>
-          <span data-i18n="toggleTheme">Đổi theme</span>
-        </button>
-
-        <button class="settings-btn" id="toggleLangFull">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="2" y1="12" x2="22" y2="12"></line>
-            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-          </svg>
-          <span id="langLabel">Tiếng Việt</span>
-        </button>
-
-        <!-- Premium Quick Activation -->
-        <div class="premium-quick" id="premiumQuick">
-          <input type="text" class="premium-quick-input" id="premiumKeyQuick" placeholder="Premium Key..."
-            maxlength="20">
-          <button class="premium-quick-btn" id="activateBtnQuick" data-i18n="activate">Kích hoạt</button>
-        </div>
-        <button class="settings-btn danger-btn" id="deactivateBtn" style="display:none;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M18.36 6.64A9 9 0 1 1 5.64 5.64 9 9 0 0 1 18.36 6.64z"></path>
-            <line x1="12" y1="2" x2="12" y2="12"></line>
-          </svg>
-          <span data-i18n="deactivate">Hủy Premium</span>
-        </button>
-
-        <div class="author-credit">
-          <a href="https://github.com/anhhackta/" target="_blank">Made by @anhhackta</a>
-        </div>
-      </div>
-    </aside>
-
-    <!-- Main Content -->
-    <main class="main-content">
-      <header class="content-header">
-        <div class="header-left">
-          <h1 id="pageTitle" data-i18n="textClipboard">Text Clipboard</h1>
-          <span class="item-count" id="itemCount">0 items</span>
-        </div>
-        <div class="header-actions">
-          <div class="search-box">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8"></circle>
-              <path d="M21 21l-4.35-4.35"></path>
-            </svg>
-            <input type="text" id="searchInputFull" placeholder="Tìm kiếm..." data-i18n-placeholder="search">
-          </div>
-          <button class="action-btn" id="importBtnFull">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-              <polyline points="17 8 12 3 7 8"></polyline>
-              <line x1="12" y1="3" x2="12" y2="15"></line>
-            </svg>
-            <span data-i18n="import">Import</span>
-          </button>
-          <button class="action-btn primary" id="exportBtnFull">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-              <polyline points="7 10 12 15 17 10"></polyline>
-              <line x1="12" y1="15" x2="12" y2="3"></line>
-            </svg>
-            <span data-i18n="export">Export</span>
-          </button>
-          <button class="action-btn danger" id="clearAllBtnFull">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="3 6 5 6 21 6"></polyline>
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
-            </svg>
-            <span data-i18n="clearAll">Xóa tất cả</span>
-          </button>
-        </div>
-      </header>
-
-      <!-- Text Content -->
-      <div class="content-area active" id="textContent">
-        <div class="text-grid" id="textGridFull"></div>
-      </div>
-
-      <!-- Image Content -->
-      <div class="content-area" id="imageContent">
-        <div class="image-grid-full" id="imageGridFull"></div>
-      </div>
-
-      <!-- Premium Content -->
-      <div class="content-area" id="premiumContent">
-        <div class="premium-section" id="premiumSection">
-          <div class="premium-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polygon
-                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
-              </polygon>
-            </svg>
-          </div>
-          <h2 class="premium-title" data-i18n="upgradeToPro">Nâng cấp lên Premium</h2>
-          <p class="premium-desc" data-i18n="premiumDesc">Mở khóa tất cả tính năng nâng cao với giấy phép vĩnh viễn.</p>
-
-          <div class="premium-features">
-            <div class="premium-feature">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-              <span data-i18n="feat1">Không giới hạn ảnh</span>
-            </div>
-            <div class="premium-feature">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-              <span data-i18n="feat2">Dung lượng lưu trữ không giới hạn</span>
-            </div>
-            <div class="premium-feature">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-              <span data-i18n="feat3">Thư mục quản lý text</span>
-            </div>
-            <div class="premium-feature">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-              <span data-i18n="feat4">Tìm kiếm nâng cao</span>
-            </div>
-            <div class="premium-feature">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-              <span data-i18n="feat5">Tự động loại bỏ text trùng lặp</span>
-            </div>
-            <div class="premium-feature">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-              <span data-i18n="feat6">Tùy chỉnh background</span>
-            </div>
-          </div>
-
-          <div class="premium-input-group" id="activationGroup">
-            <input type="text" class="premium-input" id="premiumKeyInput" placeholder="Nhập key..." maxlength="20">
-            <button class="premium-activate" id="activateBtn" data-i18n="activate">Kích hoạt</button>
-          </div>
-
-          <div class="premium-success" id="premiumSuccess" style="display: none;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-            <h3 data-i18n="activated">Đã kích hoạt thành công!</h3>
-            <p data-i18n="enjoyPro">Bạn đã mở khóa tất cả tính năng Premium.</p>
-          </div>
-        </div>
-      </div>
-    </main>
+      <p class="copy" id="t_copy">© 2025–2026 Nguyễn Bá Hoàng (anhhackta). MIT — dùng tự do nếu ghi nguồn.</p>
+    </footer>
   </div>
 
-  <!-- Modals -->
-  <div id="modalFull" class="modal-overlay">
-    <div class="modal-box">
-      <h3 id="modalTitle" data-i18n="confirmDelete">Xác nhận xóa?</h3>
-      <p id="modalText" data-i18n="deleteWarning">Dữ liệu sẽ bị xóa vĩnh viễn.</p>
-      <div class="modal-actions">
-        <button class="modal-btn" id="modalCancel" data-i18n="cancel">Hủy</button>
-        <button class="modal-btn danger" id="modalConfirm" data-i18n="delete">Xóa</button>
-      </div>
-    </div>
-  </div>
+  <script>
+    const dict = {
+      vi: {
+        title: "Lưu mỗi lần copy. Dán lại đúng đoạn cần.",
+        lead: "Quản lý lịch sử clipboard (văn bản & ảnh) ngay trên máy — Paste Multi, ghim, PIN lock. Chrome & Edge.",
+        download: "Tải bản mới nhất",
+        feat_title: "Làm được gì",
+        feat_sub: "Bản 1.0.2 viết lại kiến trúc: IndexedDB, ảnh, Paste Multi, khóa PIN — vẫn 100% local.",
+        f1t: "Text + ảnh", f1d: "Tự lưu khi copy; chuột phải lưu text/ảnh; phân loại link, email, số, code.",
+        f2t: "Paste Multi", f2d: "Ctrl+V trong ô nhập để chọn đoạn đã lưu — hộp gợi ý hoặc phím 1–0.",
+        f3t: "PIN & quyền riêng tư", f3d: "Khóa giao diện bằng PIN 4–6 số. Không analytics, không gửi clipboard đi đâu.",
+        f4t: "Xuất / nhập", f4d: "Backup JSON (có thể mã hóa mật khẩu), tải .txt, tự xóa mục cũ, ghim mục quan trọng.",
+        install_title: "Cài đặt từ ZIP",
+        install_sub: "Chưa lên Store — tải từ Releases rồi nạp unpacked.",
+        s1: "<strong>Tải ZIP</strong> bản Latest trên GitHub Releases.",
+        s2: "<strong>Giải nén</strong> ra một thư mục (giữ nguyên cấu trúc).",
+        s3: "Mở <strong>chrome://extensions</strong> hoặc <strong>edge://extensions</strong>, bật Developer mode.",
+        s4: "<strong>Load unpacked</strong> → chọn thư mục có <code>manifest.json</code>.",
+        legacy_title: "Bản đầu tiên",
+        legacy_body: "Release <strong>v1.1.1</strong> là bản công khai đầu (chỉ text, kiến trúc cũ), vẫn tải được để đối chiếu. Nhánh mã nguồn: <code>legacy-old</code>. Bản <strong>v1.0.2</strong> là dòng chính, sẽ cập nhật lâu dài.",
+        legacy_btn: "Xem bản đầu v1.1.1",
+        latest_btn: "Bản hiện tại v1.0.2",
+        donate: "Ủng hộ",
+        copy: "© 2025–2026 Nguyễn Bá Hoàng (anhhackta). MIT — dùng tự do nếu ghi nguồn."
+      },
+      en: {
+        title: "Save every copy. Paste the right snippet back.",
+        lead: "Clipboard history for text & images — on your device only. Paste Multi, pin, PIN lock. Chrome & Edge.",
+        download: "Download latest",
+        feat_title: "What you get",
+        feat_sub: "v1.0.2 is a full rebuild: IndexedDB, images, Paste Multi, PIN — still 100% local.",
+        f1t: "Text + images", f1d: "Auto-save on copy; right-click text/images; classify links, emails, numbers, code.",
+        f2t: "Paste Multi", f2d: "Ctrl+V in an input to pick a saved snippet — suggestion box or keys 1–0.",
+        f3t: "PIN & privacy", f3d: "Lock the UI with a 4–6 digit PIN. No analytics; clipboard never leaves the device.",
+        f4t: "Export / import", f4d: "JSON backup (optional password encryption), .txt export, auto-delete, pins.",
+        install_title: "Install from ZIP",
+        install_sub: "Not on the Store yet — download from Releases and load unpacked.",
+        s1: "<strong>Download the ZIP</strong> marked Latest on GitHub Releases.",
+        s2: "<strong>Unzip</strong> into a folder (keep the file structure).",
+        s3: "Open <strong>chrome://extensions</strong> or <strong>edge://extensions</strong>, enable Developer mode.",
+        s4: "<strong>Load unpacked</strong> → pick the folder that contains <code>manifest.json</code>.",
+        legacy_title: "First release",
+        legacy_body: "Release <strong>v1.1.1</strong> is the original public build (text-only, older architecture) — still available for comparison. Source branch: <code>legacy-old</code>. <strong>v1.0.2</strong> is the main line going forward.",
+        legacy_btn: "Open first release v1.1.1",
+        latest_btn: "Current build v1.0.2",
+        donate: "Support",
+        copy: "© 2025–2026 Nguyễn Bá Hoàng (anhhackta). MIT — free to use with attribution."
+      }
+    };
 
-  <div id="imagePreviewFull" class="image-preview-overlay">
-    <img id="previewImgFull" src="" alt="">
-    <div class="preview-info">
-      <span id="previewSize"></span>
-      <span id="previewTime"></span>
-    </div>
-    <div class="preview-actions">
-      <button class="preview-btn" id="previewCopy" data-i18n="copy">Copy</button>
-      <button class="preview-btn" id="previewDownload" data-i18n="download">Tải xuống</button>
-      <button class="preview-btn danger" id="previewDelete" data-i18n="delete">Xóa</button>
-      <button class="preview-btn" id="previewClose" data-i18n="close">Đóng</button>
-    </div>
-  </div>
+    const $ = (id) => document.getElementById(id);
+    let lang = localStorage.getItem("cl-lang") || "vi";
+    let theme = localStorage.getItem("cl-theme") || "dark";
 
-  <input type="file" id="importFileFull" style="display:none" accept=".txt,.json">
-  <input type="file" id="uploadImageInput" style="display:none" accept="image/*" multiple>
+    function applyTheme() {
+      document.documentElement.setAttribute("data-theme", theme);
+      localStorage.setItem("cl-theme", theme);
+    }
 
-  <script src="db.js"></script>
-  <script src="fullpage.js"></script>
+    function applyLang() {
+      const t = dict[lang];
+      document.documentElement.lang = lang;
+      $("btnLang").textContent = lang === "vi" ? "VN" : "EN";
+      $("t_title").textContent = t.title;
+      $("t_lead").textContent = t.lead;
+      $("t_download").textContent = t.download;
+      $("t_feat_title").textContent = t.feat_title;
+      $("t_feat_sub").textContent = t.feat_sub;
+      $("t_f1t").textContent = t.f1t; $("t_f1d").textContent = t.f1d;
+      $("t_f2t").textContent = t.f2t; $("t_f2d").textContent = t.f2d;
+      $("t_f3t").textContent = t.f3t; $("t_f3d").textContent = t.f3d;
+      $("t_f4t").textContent = t.f4t; $("t_f4d").textContent = t.f4d;
+      $("t_install_title").textContent = t.install_title;
+      $("t_install_sub").textContent = t.install_sub;
+      $("t_s1").innerHTML = t.s1;
+      $("t_s2").innerHTML = t.s2;
+      $("t_s3").innerHTML = t.s3;
+      $("t_s4").innerHTML = t.s4;
+      $("t_legacy_title").textContent = t.legacy_title;
+      $("t_legacy_body").innerHTML = t.legacy_body;
+      $("t_legacy_btn").textContent = t.legacy_btn;
+      $("t_latest_btn").textContent = t.latest_btn;
+      $("t_donate").textContent = t.donate;
+      $("t_copy").textContent = t.copy;
+      localStorage.setItem("cl-lang", lang);
+    }
+
+    $("btnTheme").addEventListener("click", () => {
+      theme = theme === "dark" ? "light" : "dark";
+      applyTheme();
+    });
+    $("btnLang").addEventListener("click", () => {
+      lang = lang === "vi" ? "en" : "vi";
+      applyLang();
+    });
+
+    applyTheme();
+    applyLang();
+  </script>
 </body>
-
 </html>

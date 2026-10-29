@@ -1,265 +1,100 @@
-# CopyLoad - Chrome Extension
+# CopyLoad
 
 <div align="center">
   <img src="icons/icon128.png" alt="CopyLoad Logo" width="128" height="128">
-  <h3>Lưu trữ và quản lý clipboard thông minh</h3>
-  <p>Một extension Chrome/Edge mạnh mẽ để lưu trữ, quản lý và tìm kiếm các đoạn văn bản đã copy</p>
-  
-  [![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-Install-blue?logo=google-chrome)](https://chrome.google.com/webstore)
-  [![Edge Add-ons](https://img.shields.io/badge/Edge%20Add--ons-Install-blue?logo=microsoft-edge)](https://microsoftedge.microsoft.com/addons)
+  <h3>Quản lý lịch sử clipboard — văn bản & ảnh</h3>
+  <p>Extension Chrome/Edge (Manifest V3). Dữ liệu chỉ lưu trên máy, không gửi lên server.</p>
+
+  [![Version](https://img.shields.io/badge/version-1.0.2-blue.svg)](https://github.com/anhhackta/CopyLoad-Extension/releases)
   [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-  [![Language](https://img.shields.io/badge/Language-Vietnamese-red.svg)](README.md)
-  [![Language](https://img.shields.io/badge/Language-English-blue.svg)](README_EN.md)
+  [![Language](https://img.shields.io/badge/VI-red.svg)](README.md)
+  [![Language](https://img.shields.io/badge/EN-blue.svg)](README_EN.md)
+  [![Language](https://img.shields.io/badge/JP-orange.svg)](README_JP.md)
 </div>
+
 <p align="center">
-Vietnamese | <a href="https://github.com/anhhackta/CopyLoad-Extension/blob/main/README_EN.md">English</a> |
-  <!-- Keep these links. Translations will automatically update with the README. -->
-  <a href="https://github.com/anhhackta/CopyLoad-Extension/blob/main/README_JP.md">日本語</a>
+  <b>Tiếng Việt</b> · <a href="README_EN.md">English</a> · <a href="README_JP.md">日本語</a>
+  · <a href="https://anhhackta.github.io/CopyLoad-Extension/">Website</a>
+  · <a href="https://github.com/anhhackta/CopyLoad-Extension/releases">Releases</a>
 </p>
----
-## 🌟 Tính năng nổi bật
-
-### ✨ **Lưu trữ thông minh**
-- **Lưu tự động**: Tự động lưu text khi sử dụng Ctrl+C
-- **Lưu thủ công**: Lưu text được chọn bằng chuột phải
-- **Phân loại thông minh**: Hỗ trợ 2 loại lưu trữ - tạm thời và vĩnh viễn
-- **Tag thông minh**: Hiển thị tag "temp" cho clipboard tạm thời
-
-### 🎨 **Giao diện hiện đại**
-- **Dark/Light Mode**: Hỗ trợ 3 chế độ giao diện (Sáng/Tối/Theo thiết bị)
-- **Đa ngôn ngữ**: Hỗ trợ tiếng Việt và tiếng Anh
-- **Responsive**: Giao diện tối ưu cho mọi kích thước màn hình
-- **Màu sắc hiện đại**: Sử dụng màu sắc đẹp mắt và chuyên nghiệp
-
-### 🔍 **Tìm kiếm và quản lý**
-- **Tìm kiếm real-time**: Tìm kiếm nhanh chóng trong danh sách clipboard
-- **Counter thông minh**: Hiển thị số lượng clipboard đã lưu
-- **Copy nhanh**: Copy lại text với một click
-- **Xóa thông minh**: Xóa từng item hoặc xóa tất cả với xác nhận
-
-### 💾 **Lưu trữ linh hoạt**
-- **Toggle "Lưu vào máy"**: 
-  - **Bật**: Clipboard mới → lưu vĩnh viễn (không mất khi tắt trình duyệt)
-  - **Tắt**: Clipboard mới → lưu tạm thời (có tag "temp", mất khi tắt trình duyệt)
-- **Download**: Tải toàn bộ danh sách ra file .txt
-- **Không giới hạn**: Lưu vô hạn clipboard
-
----
-https://github.com/user-attachments/assets/a27b4ebe-01f8-44df-8c4a-2400dd1aa14f
-
-## 📦 Cài đặt
-
-### Cách 1: Cài đặt từ file ZIP (Khuyến nghị)
-
-1. **Tải file ZIP** từ [releases](../../releases) hoặc từ nguồn khác
-2. **Giải nén** file ZIP vào thư mục mong muốn
-3. **Mở Chrome/Edge** và vào `chrome://extensions/`
-4. **Bật "Developer mode"** (Chế độ nhà phát triển)
-5. **Click "Load unpacked"** (Tải extension chưa đóng gói)
-6. **Chọn thư mục** chứa extension đã giải nén
-7. **Hoàn tất!** Extension sẽ xuất hiện trên toolbar
-
-### Cách 2: Cài đặt từ Chrome Web Store (❌)
-
-1. **Truy cập** [Chrome Web Store](https://chrome.google.com/webstore)
-2. **Tìm kiếm** "CopyLoad"
-3. **Click "Add to Chrome"**
-4. **Xác nhận** cài đặt
-
-### Cách 3: Cài đặt từ Edge Add-ons (❌)
-
-1. **Truy cập** [Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons)
-2. **Tìm kiếm** "CopyLoad"
-3. **Click "Get"**
-4. **Xác nhận** cài đặt
 
 ---
 
-## 🚀 Hướng dẫn sử dụng chi tiết
+## Tính năng (v1.0.2)
 
-### 📋 **Lưu clipboard**
-
-#### Lưu tự động (Ctrl+C)
-1. **Chọn text** trên trang web
-2. **Nhấn Ctrl+C** (hoặc Cmd+C trên Mac)
-3. **Text sẽ được lưu** tự động vào danh sách
-4. **Kiểm tra tag**: Nếu có tag "temp" = lưu tạm thời, không có tag = lưu vĩnh viễn
-
-#### Lưu thủ công (Chuột phải)
-1. **Chọn text** trên trang web
-2. **Click chuột phải**
-3. **Chọn "Lưu vào Clipboard"**
-4. **Text sẽ được lưu** vĩnh viễn (không có tag temp)
-
-### ⚙️ **Cài đặt lưu trữ**
-
-#### Toggle "Lưu khi Ctrl+C"
-- **Bật**: Tự động lưu khi Ctrl+C
-- **Tắt**: Không lưu khi Ctrl+C
-
-#### Toggle "Lưu vào máy" (Quan trọng!)
-- **Bật**: Clipboard mới → lưu vĩnh viễn (không có tag temp, không mất khi tắt trình duyệt)
-- **Tắt**: Clipboard mới → lưu tạm thời (có tag temp, mất khi tắt trình duyệt)
-
-### 🎨 **Tùy chỉnh giao diện**
-
-#### Thay đổi ngôn ngữ
-1. **Click dropdown ngôn ngữ** (VN/EN)
-2. **Chọn ngôn ngữ** mong muốn
-3. **Giao diện sẽ thay đổi** ngay lập tức
-
-#### Thay đổi theme
-1. **Click dropdown theme** (🌙)
-2. **Chọn chế độ**: ☀️ Sáng / 🌙 Tối / 🖥️ Theo thiết bị
-3. **Giao diện sẽ thay đổi** ngay lập tức
-
-### 🔍 **Tìm kiếm và quản lý**
-
-#### Tìm kiếm clipboard
-1. **Nhập từ khóa** vào ô tìm kiếm
-2. **Kết quả hiển thị** real-time
-3. **Counter hiển thị** số lượng kết quả
-
-#### Copy clipboard
-1. **Click nút "Copy"** bên cạnh clipboard
-2. **Text sẽ được copy** vào clipboard hệ thống
-3. **Thông báo thành công** sẽ hiển thị
-
-#### Xóa clipboard
-1. **Click nút "Del"** bên cạnh clipboard
-2. **Clipboard sẽ bị xóa** khỏi danh sách
-3. **Thông báo thành công** sẽ hiển thị
-
-#### Xóa tất cả
-1. **Click nút "Xóa hết"**
-2. **Xác nhận** trong modal
-3. **Tất cả clipboard** sẽ bị xóa
-
-#### Download danh sách
-1. **Click nút "Download"**
-2. **File .txt** sẽ được tải về
-3. **Chứa tất cả clipboard** đã lưu
+- **Lưu văn bản**: tự động khi Ctrl+C / cắt / dán; hoặc chuột phải → *Lưu vào CopyLoad*
+- **Lưu ảnh**: chuột phải → *Lưu ảnh vào CopyLoad*, hoặc dán ảnh từ clipboard trong popup
+- **Phân loại**: text / link / email / số / code; ghim mục quan trọng
+- **Tạm / vĩnh viễn**: tắt “Lưu vĩnh viễn” → mục tạm (mất khi đóng trình duyệt); ảnh cũng không lưu khi tắt
+- **Paste Multi**: Ctrl+V trong ô nhập để chọn đoạn đã lưu (hộp gợi ý hoặc chế độ nhanh 1–0)
+- **PIN**: khóa popup / manager / Paste Multi bằng mã 4–6 số
+- **Dữ liệu**: xuất/nhập JSON (tuỳ chọn mã hóa mật khẩu), tải .txt, tự xóa mục cũ, xóa hàng loạt
+- **Giao diện**: sáng / tối / theo hệ thống; tiếng Việt & English; popup + trang quản lý đầy đủ
+- **Lưu trữ**: IndexedDB cho lịch sử; cài đặt sync/local; không analytics, không mạng
 
 ---
 
-## 🔧 Cấu trúc file
+## Cài đặt (từ ZIP)
+
+1. Tải bản mới nhất tại [Releases](https://github.com/anhhackta/CopyLoad-Extension/releases/latest)
+2. Giải nén thư mục extension
+3. Mở `chrome://extensions` (hoặc `edge://extensions`)
+4. Bật **Developer mode**
+5. **Load unpacked** → chọn thư mục vừa giải nén (có `manifest.json`)
+
+> Chưa có trên Chrome Web Store / Edge Add-ons.
+
+---
+
+## Dùng nhanh
+
+| Việc | Cách |
+|------|------|
+| Lưu text | Ctrl+C (nếu bật trong Cài đặt) hoặc chuột phải |
+| Lưu ảnh | Chuột phải ảnh, hoặc tab Ảnh → Dán ảnh |
+| Dán từ lịch sử | Bật Paste Multi → Ctrl+V trong ô nhập |
+| Dán bình thường | Ctrl+Shift+V hoặc chuột phải Paste |
+| Mở trang lớn | Nút mở manager trên popup |
+| Khóa | Bật PIN trong Cài đặt |
+
+---
+
+## Cấu trúc
 
 ```
 CopyLoad/
-├── manifest.json          # Cấu hình extension
-├── background.js          # Service worker xử lý background
-├── content.js             # Content script lắng nghe sự kiện
-├── popup.html             # Giao diện popup
-├── popup.css              # CSS cho popup
-├── popup.js               # JavaScript cho popup
-├── icons/                 # Thư mục chứa icons
-│   ├── icon16.png        # Icon 16x16
-│   ├── icon48.png        # Icon 48x48
-│   ├── icon128.png       # Icon 128x128
-│   └── icon.svg          # Icon SVG gốc
-├── README.md              # Hướng dẫn tiếng Việt
-├── README_EN.md           # Hướng dẫn tiếng Anh
-└── LICENSE                # Giấy phép MIT
+├── manifest.json
+├── icons/
+├── src/
+│   ├── background/     # service worker
+│   ├── content/        # copy/paste + Paste Multi picker
+│   ├── app/            # popup + manager UI
+│   └── shared/         # constants, i18n, db, settings, lock, crypto
+├── index.html          # landing (GitHub Pages)
+├── README.md / README_EN.md / README_JP.md
+└── LICENSE             # MIT
 ```
 
----
-
-## 🎯 Tính năng chi tiết
-
-### 📊 **Thống kê thông minh**
-- **Counter real-time**: Hiển thị số lượng clipboard
-- **Phân loại**: Tag "temp" cho clipboard tạm thời
-- **Tìm kiếm**: Hỗ trợ tìm kiếm nhanh chóng
-
-### 🔄 **Đồng bộ và lưu trữ**
-- **Persistent storage**: Lưu vĩnh viễn trong `chrome.storage.local`
-- **Session storage**: Lưu tạm thời trong `chrome.storage.session`
-- **Auto-sync**: Tự động đồng bộ giữa các tab
-
-### 🛡️ **Bảo mật và quyền riêng tư**
-- **Local storage**: Dữ liệu chỉ lưu trên máy local
-- **Không gửi dữ liệu**: Không gửi clipboard lên server
-- **Quyền tối thiểu**: Chỉ yêu cầu quyền cần thiết
+Nhánh `legacy-old` giữ bản đầu (v1.1.1, chỉ text, kiến trúc cũ).
 
 ---
 
-## 🐛 Xử lý sự cố thường gặp
+## Quyền riêng tư
 
-### Extension không hoạt động
-1. **Kiểm tra quyền**: Đảm bảo extension có quyền truy cập trang web
-2. **Reload extension**: Vào `chrome://extensions/` và click "Reload"
-3. **Kiểm tra console**: Mở DevTools để xem lỗi
-
-### Ctrl+C không lưu
-1. **Kiểm tra toggle**: Đảm bảo toggle "Lưu khi Ctrl+C" đang bật
-2. **Kiểm tra trang web**: Một số trang web có thể chặn sự kiện copy
-3. **Thử chuột phải**: Sử dụng chuột phải để lưu thủ công
-
-### Clipboard bị mất
-1. **Kiểm tra toggle "Lưu vào máy"**: 
-   - Nếu tắt: Clipboard có tag "temp" sẽ mất khi tắt trình duyệt
-   - Nếu bật: Clipboard sẽ được lưu vĩnh viễn
-2. **Kiểm tra storage**: Vào DevTools > Application > Storage
-
-### Tag "temp" không hiển thị
-1. **Kiểm tra toggle "Lưu vào máy"**: Phải tắt để có tag temp
-2. **Reload extension**: Vào `chrome://extensions/` và click "Reload"
-3. **Kiểm tra logic**: Tag temp chỉ hiển thị cho clipboard trong temp storage
+Clipboard chỉ lưu local (IndexedDB / `chrome.storage`). Không gửi dữ liệu ra ngoài. PIN là lớp khóa giao diện (PBKDF2); IndexedDB không mã hóa toàn bộ — file xuất có thể mã hóa AES-GCM nếu bạn chọn.
 
 ---
 
-## 🤝 Đóng góp
+## License
 
-Chúng tôi rất hoan nghênh mọi đóng góp! Hãy:
-
-1. **Fork** repository này
-2. **Tạo branch** mới (`git checkout -b feature/AmazingFeature`)
-3. **Commit** thay đổi (`git commit -m 'Add some AmazingFeature'`)
-4. **Push** lên branch (`git push origin feature/AmazingFeature`)
-5. **Tạo Pull Request**
-
-### 🐛 Báo cáo lỗi
-- **Tạo Issue** với mô tả chi tiết
-- **Đính kèm screenshot** nếu có thể
-- **Mô tả bước tái hiện** lỗi
-
-### 💡 Đề xuất tính năng
-- **Tạo Issue** với label "enhancement"
-- **Mô tả chi tiết** tính năng mong muốn
-- **Giải thích lợi ích** của tính năng
+[MIT](LICENSE) — được dùng, sửa, phân phối miễn là **giữ nguyên dòng copyright / ghi nguồn tác giả**.
 
 ---
 
-## 📄 License
+## Tác giả
 
-Dự án này được phân phối dưới giấy phép MIT. Xem file [LICENSE](LICENSE) để biết thêm chi tiết.
+**Nguyễn Bá Hoàng** ([@anhhackta](https://github.com/anhhackta))
 
----
-
-## 👨‍💻 Tác giả
-
-**Nguyễn Bá Hoàng** - Ủng hộ ý tưởng
-
-- 🌐 **Website**: [anhhackta.com](https://anhhackta.com)
-- 📧 **Email**: [contact@anhhackta.com](mailto:contact@anhhackta.com)
-- 💬 **Facebook**: [@anhhackta](https://facebook.com/anhhackta.official)
-- 💰 **Ủng hộ**: [PayPal](https://paypal.me/bahoang2k2)
-- 📂 **GitHub**: [@anhhackta](https://github.com/anhhackta)
-
----
-
-## ⭐ Đánh giá
-
-Nếu bạn thích extension này, hãy:
-
-- ⭐ **Star** repository này
-- 📝 **Để lại đánh giá** trên Chrome Web Store
-- 💰 **Ủng hộ** tác giả qua PayPal
-- 📢 **Chia sẻ** với bạn bè
-
----
-
-<div align="center">
-  <p>Made with ❤️ by <a href="https://github.com/anhhackta">Nguyễn Bá Hoàng</a></p>
-  <p>Hỗ trợ dự án: <a href="https://paypal.me/bahoang2k2">PayPal</a> | <a href="https://facebook.com/anhhackta.official">Facebook</a></p>
-</div>
+- Website: [anhhackta.com](https://anhhackta.com) · [GitHub Pages](https://anhhackta.github.io/CopyLoad-Extension/)
+- Facebook: [@anhhackta.official](https://facebook.com/anhhackta.official)
+- Ủng hộ: [Buy Me a Coffee](https://www.buymeacoffee.com/anhhackta)
