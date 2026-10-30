@@ -98,6 +98,15 @@ CopyLoad/
 - PIN は UI ロック（PBKDF2）。IndexedDB 全体は暗号化しません。書き出し JSON はパスワード指定時に AES-GCM 可能です。
 
 ---
+## スターの歴史
+
+<a href="https://www.star-history.com/?repos=anhhackta%2Fcopyload-extension&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=anhhackta/copyload-extension&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=anhhackta/copyload-extension&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=anhhackta/copyload-extension&type=date&legend=top-left" />
+ </picture>
+</a> 
 
 ## ライセンス
 
@@ -111,4 +120,5 @@ CopyLoad/
 
 - Website: [anhhackta.com](https://anhhackta.com) · [GitHub Pages](https://anhhackta.github.io/CopyLoad-Extension/)
 - Facebook: [anhhackta.official](https://facebook.com/anhhackta.official)
-- Support: [Buy Me a Coffee](https://www.buymeacoffee.com/anhhackta)
+- Support: [Paypal](https://www.paypal.com/paypalme/bahoang2k2)
+- Crypto: `BNB` (BSC/BEP20) · `0xfc988e0a632d0ed7c88dbf2d17e021b36de6890a`

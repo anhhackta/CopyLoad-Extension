@@ -1,4 +1,4 @@
-.# CopyLoad
+# CopyLoad
 
 <div align="center">
   <img src="icons/icon128.png" alt="CopyLoad Logo" width="128" height="128">
@@ -121,4 +121,5 @@ CopyLoad/
 
 - Site: [anhhackta.com](https://anhhackta.com) · [GitHub Pages](https://anhhackta.github.io/CopyLoad-Extension/)
 - Facebook: [anhhackta.official](https://facebook.com/anhhackta.official)
-- Support: [Buy Me a Coffee](https://www.buymeacoffee.com/anhhackta)
+- Support: [Paypal](https://www.paypal.com/paypalme/bahoang2k2)
+- Crypto: `BNB` (BSC/BEP20) · `0xfc988e0a632d0ed7c88dbf2d17e021b36de6890a`

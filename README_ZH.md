@@ -99,6 +99,16 @@ CopyLoad/
 
 ---
 
+## 星级历史
+
+<a href="https://www.star-history.com/?repos=anhhackta%2Fcopyload-extension&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=anhhackta/copyload-extension&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=anhhackta/copyload-extension&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=anhhackta/copyload-extension&type=date&legend=top-left" />
+ </picture>
+</a>
+
 ## 许可证
 
 [MIT](LICENSE) — 可自由使用、修改与再分发，但须**保留版权声明 / 注明作者**。
@@ -111,4 +121,5 @@ CopyLoad/
 
 - 网站：[anhhackta.com](https://anhhackta.com) · [GitHub Pages](https://anhhackta.github.io/CopyLoad-Extension/)
 - Facebook：[anhhackta.official](https://facebook.com/anhhackta.official)
-- 支持：[Buy Me a Coffee](https://www.buymeacoffee.com/anhhackta)
+- 支持：[Paypal](https://www.paypal.com/paypalme/bahoang2k2)
+- Crypto: `BNB` (BSC/BEP20) · `0xfc988e0a632d0ed7c88dbf2d17e021b36de6890a`

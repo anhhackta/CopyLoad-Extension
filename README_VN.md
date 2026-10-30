@@ -99,6 +99,16 @@ CopyLoad/
 
 ---
 
+## Sao ủng hộ
+
+<a href="https://www.star-history.com/?repos=anhhackta%2Fcopyload-extension&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=anhhackta/copyload-extension&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=anhhackta/copyload-extension&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=anhhackta/copyload-extension&type=date&legend=top-left" />
+ </picture>
+</a>
+
 ## License
 
 [MIT](LICENSE) — dùng, sửa, phân phối tự do nếu **giữ dòng copyright / ghi nguồn tác giả**.
@@ -111,4 +121,5 @@ CopyLoad/
 
 - Website: [anhhackta.com](https://anhhackta.com) · [GitHub Pages](https://anhhackta.github.io/CopyLoad-Extension/)
 - Facebook: [anhhackta.official](https://facebook.com/anhhackta.official)
-- Ủng hộ: [Buy Me a Coffee](https://www.buymeacoffee.com/anhhackta)
+- Ủng hộ: [Paypal](https://www.paypal.com/paypalme/bahoang2k2)
+- Crypto: `BNB` (BSC/BEP20) · `0xfc988e0a632d0ed7c88dbf2d17e021b36de6890a`
