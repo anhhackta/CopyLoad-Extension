@@ -1,4 +1,4 @@
-# CopyLoad
+.# CopyLoad
 
 <div align="center">
   <img src="icons/icon128.png" alt="CopyLoad Logo" width="128" height="128">
@@ -98,6 +98,16 @@ CopyLoad/
 - PIN is a UI lock (PBKDF2 hash in local storage). IndexedDB is not fully encrypted at rest; JSON exports can use AES-GCM when you set a password.
 
 ---
+
+## Star History
+
+<a href="https://www.star-history.com/?repos=anhhackta%2Fcopyload-extension&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=anhhackta/copyload-extension&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=anhhackta/copyload-extension&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=anhhackta/copyload-extension&type=date&legend=top-left" />
+ </picture>
+</a>
 
 ## License
 
