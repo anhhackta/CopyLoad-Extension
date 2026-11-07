@@ -6,7 +6,8 @@ const MSG = Object.freeze({
   SAVE_IMAGE: 'copyload:save-image',
   PICKER_OPEN: 'copyload:picker-open',
   PICKER_GET_TEXT: 'copyload:picker-get-text',
-  PICKER_GET_BY_INDEX: 'copyload:picker-get-by-index'
+  PICKER_GET_BY_INDEX: 'copyload:picker-get-by-index',
+  NOTE_GET_ITEMS: 'copyload:note-get-items'
 });
 
 const MENU_IDS = Object.freeze({
@@ -21,6 +22,7 @@ const LIMITS = Object.freeze({
   TEMP_MAX_CHARS: 20000,
   PREVIEW_CHARS: 400,
   PICKER_PREVIEW_CHARS: 120,
+  NOTE_MAX_ITEMS: 10,
   PAGE_SIZE: 30,
   THUMB_MAX_SIDE: 240,
   THUMB_QUALITY: 0.85,
@@ -67,7 +69,9 @@ const STORAGE_KEYS = Object.freeze({
   LOCK_FAIL: 'lockFail',
   LAST_CLEANUP_AT: 'lastCleanupAt',
   UNLOCK_STATE: 'unlockState',
-  TEMP_TEXTS: 'tempTexts'
+  TEMP_TEXTS: 'tempTexts',
+  FLOATING_NOTE_STATE: 'floatingNoteState',
+  LAST_DATA_CHANGE_AT: 'lastDataChangeAt'
 });
 
 // area: where the value lives. sync = follows the user's browser profile,
@@ -77,9 +81,15 @@ const SETTINGS_SCHEMA = Object.freeze({
   language: { area: 'sync', default: 'vi', allowed: ['vi', 'en'], legacyLocal: true },
   pasteMode: { area: 'sync', default: 'box', allowed: ['box', 'quick'] },
   pasteCount: { area: 'sync', default: 5, allowed: [5, 7, 10] },
+  enableKindText: { area: 'sync', default: true },
+  enableKindLink: { area: 'sync', default: true },
+  enableKindCode: { area: 'sync', default: true },
+  enableKindEmail: { area: 'sync', default: false },
+  enableKindNumber: { area: 'sync', default: false },
   enableCtrlC: { area: 'local', default: true },
   enablePersistent: { area: 'local', default: true },
   enablePasteMulti: { area: 'local', default: false },
+  enableFloatingNote: { area: 'local', default: false },
   autoDeleteDays: { area: 'local', default: 0, allowed: [0, 7, 30, 90, 180] },
   lockTimeoutMin: { area: 'local', default: 1, allowed: [0, 1, 5, 15, 60] }
 });

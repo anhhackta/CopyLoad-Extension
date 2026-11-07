@@ -16,6 +16,7 @@ async function listTemp() {
 
 async function writeTemp(entries) {
   await chrome.storage.session.set({ [STORAGE_KEYS.TEMP_TEXTS]: entries });
+  if (typeof notifyDataChanged === 'function') notifyDataChanged();
 }
 
 async function addTemp(rawContent) {

@@ -2,7 +2,16 @@
 
 const AUTO_DELETE_CHOICES = SETTINGS_SCHEMA.autoDeleteDays.allowed;
 const LOCK_TIMEOUT_CHOICES = SETTINGS_SCHEMA.lockTimeoutMin.allowed;
-const SWITCH_SETTINGS = ['enableCtrlC', 'enablePersistent', 'enablePasteMulti'];
+const SWITCH_SETTINGS = [
+  'enableCtrlC',
+  'enablePersistent',
+  'enablePasteMulti',
+  'enableKindText',
+  'enableKindLink',
+  'enableKindCode',
+  'enableKindEmail',
+  'enableKindNumber'
+];
 const SELECT_SETTINGS = ['language', 'theme', 'pasteMode', 'pasteCount', 'autoDeleteDays', 'lockTimeoutMin'];
 const NUMERIC_SELECT_SETTINGS = new Set(['pasteCount', 'autoDeleteDays', 'lockTimeoutMin']);
 

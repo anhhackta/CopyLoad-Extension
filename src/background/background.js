@@ -97,7 +97,7 @@ async function handlePickerOpen(message, settings) {
 }
 
 async function handlePickerGetText(message, settings) {
-  if (!settings.enablePasteMulti || !(await isUnlockValid())) return { ok: false };
+  if ((!settings.enablePasteMulti && !settings.enableFloatingNote) || !(await isUnlockValid())) return { ok: false };
   const text = await readEntryContent(message.id);
   return text === null ? { ok: false } : { ok: true, text };
 }
@@ -111,12 +111,19 @@ async function handlePickerGetByIndex(message, settings) {
   return text === null ? { ok: false } : { ok: true, text };
 }
 
+async function handleNoteGetItems(_message, settings) {
+  if (!settings.enableFloatingNote) return { ok: false };
+  if (!(await isUnlockValid())) return { ok: true, locked: true, items: [] };
+  return { ok: true, locked: false, items: await buildPickerList(LIMITS.NOTE_MAX_ITEMS) };
+}
+
 const MESSAGE_HANDLERS = {
   [MSG.SAVE_TEXT]: handleSaveText,
   [MSG.SAVE_IMAGE]: handleSaveImage,
   [MSG.PICKER_OPEN]: handlePickerOpen,
   [MSG.PICKER_GET_TEXT]: handlePickerGetText,
-  [MSG.PICKER_GET_BY_INDEX]: handlePickerGetByIndex
+  [MSG.PICKER_GET_BY_INDEX]: handlePickerGetByIndex,
+  [MSG.NOTE_GET_ITEMS]: handleNoteGetItems
 };
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {

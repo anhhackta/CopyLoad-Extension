@@ -18,6 +18,8 @@
       </div>
       <div class="topbar-actions">
         <button class="icon-btn" id="lockNowBtn" type="button" hidden data-i18n-title="lockNow" data-icon="lock"></button>
+        <button class="icon-btn" id="pinNoteBtn" type="button" data-i18n-title="pinNote" data-icon="stickyNote"></button>
+        <button class="icon-btn" id="openSidePanelBtn" type="button" data-i18n-title="openSidePanel" data-icon="sidePanel"></button>
         <button class="icon-btn" id="openManagerBtn" type="button" data-i18n-title="openManager" data-icon="external"></button>
       </div>
     </header>
@@ -37,9 +39,14 @@
             <span data-icon="search"></span>
             <input id="searchInput" type="search" autocomplete="off" data-i18n-placeholder="searchPlaceholder">
           </label>
+          <button class="icon-btn" id="filterToggleBtn" type="button" data-i18n-title="filterBtn" data-icon="filter"></button>
           <button class="btn" id="textSelectBtn" type="button" data-i18n="select"></button>
         </div>
         <div class="chips" id="kindChips" role="group"></div>
+        <div class="dropzone" id="textDropZone">
+          <span data-icon="download"></span>
+          <span data-i18n="dropZoneText"></span>
+        </div>
         <div class="bulkbar" id="textBulkBar" hidden>
           <span class="bulk-count" id="textBulkCount"></span>
           <div class="bulk-actions">
@@ -72,6 +79,10 @@
             <span data-icon="clipboardImage"></span><span data-i18n="pasteImage"></span>
           </button>
           <button class="btn" id="imageSelectBtn" type="button" data-i18n="select"></button>
+        </div>
+        <div class="dropzone" id="imageDropZone">
+          <span data-icon="download"></span>
+          <span data-i18n="dropZoneText"></span>
         </div>
         <div class="bulkbar" id="imageBulkBar" hidden>
           <span class="bulk-count" id="imageBulkCount"></span>
@@ -185,6 +196,31 @@
             <div class="setting-row">
               <div class="setting-label"><span data-i18n="autoDelete"></span><small data-i18n="autoDeleteHint"></small></div>
               <select class="select" id="autoDeleteDays"></select>
+            </div>
+          </div>
+
+          <div class="panel">
+            <h2 data-i18n="settingsFilterKinds"></h2>
+            <p class="panel-desc" data-i18n="settingsFilterKindsHint"></p>
+            <div class="setting-row">
+              <div class="setting-label"><span data-i18n="kindText"></span></div>
+              <label class="switch"><input type="checkbox" id="enableKindText"><span class="switch-track"></span></label>
+            </div>
+            <div class="setting-row">
+              <div class="setting-label"><span data-i18n="kindLink"></span></div>
+              <label class="switch"><input type="checkbox" id="enableKindLink"><span class="switch-track"></span></label>
+            </div>
+            <div class="setting-row">
+              <div class="setting-label"><span data-i18n="kindCode"></span></div>
+              <label class="switch"><input type="checkbox" id="enableKindCode"><span class="switch-track"></span></label>
+            </div>
+            <div class="setting-row">
+              <div class="setting-label"><span data-i18n="kindEmail"></span></div>
+              <label class="switch"><input type="checkbox" id="enableKindEmail"><span class="switch-track"></span></label>
+            </div>
+            <div class="setting-row">
+              <div class="setting-label"><span data-i18n="kindNumber"></span></div>
+              <label class="switch"><input type="checkbox" id="enableKindNumber"><span class="switch-track"></span></label>
             </div>
           </div>
 

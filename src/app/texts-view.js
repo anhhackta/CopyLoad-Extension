@@ -1,6 +1,13 @@
 // Texts view: search, kind filters, pinned section, lazy paging, bulk select.
 
-const KIND_FILTERS = ['all', 'pinned', KIND.LINK, KIND.EMAIL, KIND.NUMBER, KIND.CODE, KIND.TEXT];
+const KIND_FILTERS = ['all', 'pinned', KIND.TEXT, KIND.LINK, KIND.CODE, KIND.EMAIL, KIND.NUMBER];
+const KIND_SETTING_KEYS = Object.freeze({
+  [KIND.TEXT]: 'enableKindText',
+  [KIND.LINK]: 'enableKindLink',
+  [KIND.CODE]: 'enableKindCode',
+  [KIND.EMAIL]: 'enableKindEmail',
+  [KIND.NUMBER]: 'enableKindNumber'
+});
 const KIND_LABEL_KEYS = Object.freeze({
   all: 'kindAll',
   pinned: 'kindPinned',
@@ -15,6 +22,7 @@ const LOAD_MORE_MARGIN = '200px';
 
 const textsView = {
   filter: { search: '', kind: 'all' },
+  chipsExpanded: false,
   cursor: null,
   hasMore: false,
   loading: false,
@@ -24,6 +32,16 @@ const textsView = {
   selection: null,
   observer: null
 };
+
+function isKindEnabled(kind) {
+  const settingKey = KIND_SETTING_KEYS[kind];
+  if (!settingKey || !appState.settings) return true;
+  return Boolean(appState.settings[settingKey]);
+}
+
+function getVisibleKindFilters() {
+  return KIND_FILTERS.filter((kind) => isKindEnabled(kind));
+}
 
 function toTempListItem(entry) {
   return {
@@ -48,9 +66,22 @@ function activeKindFilter() {
 
 // ---------- rendering ----------
 
+function updateFilterToggleButton() {
+  const btn = $('filterToggleBtn');
+  if (!btn) return;
+  const active = textsView.filter.kind !== 'all' || textsView.chipsExpanded;
+  btn.classList.toggle('active', active);
+  btn.setAttribute('aria-expanded', String(textsView.chipsExpanded));
+}
+
 function renderKindChips() {
   const chips = $('kindChips');
-  chips.replaceChildren(...KIND_FILTERS.map((kind) => h('button', {
+  const visibleKinds = getVisibleKindFilters();
+  if (!visibleKinds.includes(textsView.filter.kind)) {
+    textsView.filter.kind = 'all';
+  }
+  chips.classList.toggle('expanded', textsView.chipsExpanded);
+  chips.replaceChildren(...visibleKinds.map((kind) => h('button', {
     type: 'button',
     className: 'chip',
     textContent: t(KIND_LABEL_KEYS[kind]),
@@ -61,6 +92,7 @@ function renderKindChips() {
       refreshTexts().catch(reportError);
     }
   })));
+  updateFilterToggleButton();
 }
 
 function renderTextCard(item) {
@@ -288,8 +320,29 @@ function initTextsView() {
 
   renderKindChips();
 
+  const chipsEl = $('kindChips');
+  chipsEl.addEventListener('wheel', (event) => {
+    if (!textsView.chipsExpanded && event.deltaY !== 0) {
+      event.preventDefault();
+      chipsEl.scrollLeft += event.deltaY;
+    }
+  }, { passive: false });
+
+  const filterBtn = $('filterToggleBtn');
+  if (filterBtn) {
+    filterBtn.addEventListener('click', () => {
+      textsView.chipsExpanded = !textsView.chipsExpanded;
+      renderKindChips();
+    });
+  }
+
   $('searchInput').addEventListener('input', debounce((event) => {
-    textsView.filter.search = event.target.value;
+    const nextSearch = event.target.value;
+    if (nextSearch.trim() === textsView.filter.search.trim()) {
+      textsView.filter.search = nextSearch;
+      return;
+    }
+    textsView.filter.search = nextSearch;
     refreshTexts().catch(reportError);
   }, SEARCH_DEBOUNCE_MS));
 

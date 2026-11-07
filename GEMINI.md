@@ -5,8 +5,8 @@ Chrome/Edge extension (Manifest V3) that saves copy history. Vanilla JS + HTML +
 
 ## Architecture (do not mix responsibilities)
 - `src/background/background.js`: service worker. Context menu, DB writes, message handling, auto-cleanup. Stateless: never keep data in global variables (worker can be killed anytime).
-- `src/content/content.js`: only listens to copy/cut/paste/keydown and sends typed messages. `picker.js` is the Paste Multi box (Shadow DOM, no storage logic).
-- `src/app/*`: popup + manager UI (one codebase, `data-view="popup|manager"`). UI only, never touches page DOM.
+- `src/content/content.js`: only listens to copy/cut/paste/keydown and sends typed messages. `picker.js` is the Paste Multi box and `note.js` is the floating pinned note (both Shadow DOM).
+- `src/app/*`: popup + sidepanel + manager UI (one codebase, `data-view="popup|sidepanel|manager"`). UI only, never touches page DOM.
 - `src/shared/*`: `constants.js` (storage keys, message types, limits, settings schema), `i18n.js`, `db.js`, `settings.js`, `lock.js`, `crypto.js`, `temp.js`, `classify.js`. No magic strings elsewhere.
 
 ## Storage

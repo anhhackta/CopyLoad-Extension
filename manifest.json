@@ -7,7 +7,8 @@
     "storage",
     "contextMenus",
     "clipboardRead",
-    "clipboardWrite"
+    "clipboardWrite",
+    "sidePanel"
   ],
   "host_permissions": [
     "<all_urls>"
@@ -15,16 +16,19 @@
   "background": {
     "service_worker": "src/background/background.js"
   },
+  "side_panel": {
+    "default_path": "src/app/sidepanel.html"
+  },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "all_frames": true,
       "run_at": "document_start",
       "js": [
         "src/shared/constants.js",
         "src/shared/i18n.js",
         "src/shared/settings.js",
         "src/content/picker.js",
+        "src/content/note.js",
         "src/content/content.js"
       ]
     }

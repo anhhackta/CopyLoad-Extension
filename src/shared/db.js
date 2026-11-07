@@ -58,6 +58,12 @@ function transactionDone(tx) {
   });
 }
 
+function notifyDataChanged() {
+  if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+    chrome.storage.local.set({ [STORAGE_KEYS.LAST_DATA_CHANGE_AT]: Date.now() }).catch(() => {});
+  }
+}
+
 // ==================== TEXTS ====================
 
 // Kept identical to v2.0.x so existing records still dedupe.
@@ -102,6 +108,7 @@ async function saveTextEntry(raw, { savedAt = Date.now(), pinned = false } = {})
     id = await requestToPromise(store.add(record));
   }
   await transactionDone(tx);
+  notifyDataChanged();
   return { id, duplicate: Boolean(existing) };
 }
 
@@ -222,6 +229,7 @@ async function importTextEntries(entries) {
     added++;
   }
   await transactionDone(tx);
+  if (added > 0) notifyDataChanged();
   return { added, skipped };
 }
 
@@ -261,6 +269,7 @@ async function saveImageBlob(blob, { savedAt = Date.now(), pinned = false } = {}
   const tx = db.transaction(STORE.IMAGES, 'readwrite');
   const id = await requestToPromise(tx.objectStore(STORE.IMAGES).add(record));
   await transactionDone(tx);
+  notifyDataChanged();
   return id;
 }
 
@@ -330,6 +339,7 @@ async function deleteRecords(storeName, ids) {
   const store = tx.objectStore(storeName);
   for (const id of ids) store.delete(id);
   await transactionDone(tx);
+  notifyDataChanged();
 }
 
 async function setPinned(storeName, ids, pinned) {
@@ -345,6 +355,7 @@ async function setPinned(storeName, ids, pinned) {
     await requestToPromise(store.put(rec));
   }
   await transactionDone(tx);
+  notifyDataChanged();
 }
 
 async function clearStore(storeName, { keepPinned = false } = {}) {
@@ -366,6 +377,7 @@ async function clearStore(storeName, { keepPinned = false } = {}) {
     });
   }
   await transactionDone(tx);
+  notifyDataChanged();
 }
 
 async function deleteStoreOlderThan(storeName, cutoff) {
@@ -397,5 +409,6 @@ async function deleteOlderThan(days) {
     deleteStoreOlderThan(STORE.TEXTS, cutoff),
     deleteStoreOlderThan(STORE.IMAGES, cutoff)
   ]);
+  if (texts + images > 0) notifyDataChanged();
   return { texts, images };
 }
