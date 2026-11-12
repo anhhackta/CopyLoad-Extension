@@ -17,13 +17,19 @@ const KIND_LABEL_KEYS = Object.freeze({
   [KIND.CODE]: 'kindCode',
   [KIND.TEXT]: 'kindText'
 });
+const SORT_ORDER = [SORT_MODE.RECENT, SORT_MODE.ALPHA, SORT_MODE.LENGTH];
+const SORT_META = Object.freeze({
+  [SORT_MODE.RECENT]: { active: false, badge: '', titleKey: 'sortRecent' },
+  [SORT_MODE.ALPHA]: { active: true, badge: 'a-z', titleKey: 'sortAlpha' },
+  [SORT_MODE.LENGTH]: { active: true, badge: '0-9', titleKey: 'sortLength' }
+});
 const SEARCH_DEBOUNCE_MS = 200;
 const LOAD_MORE_MARGIN = '200px';
 
 const textsView = {
   filter: { search: '', kind: 'all' },
-  chipsExpanded: false,
   cursor: null,
+  sortedQueue: [],
   hasMore: false,
   loading: false,
   token: 0,
@@ -32,6 +38,51 @@ const textsView = {
   selection: null,
   observer: null
 };
+
+function currentSortMode() {
+  const mode = appState.settings && appState.settings.textSortMode;
+  return SORT_ORDER.includes(mode) ? mode : SORT_MODE.RECENT;
+}
+
+function charSortGroup(ch) {
+  if (/[0-9]/.test(ch)) return 1;
+  if (/\p{L}/u.test(ch)) return 2;
+  return 0;
+}
+
+function compareAlphaText(a, b) {
+  const sa = (a || '').trim().toLowerCase();
+  const sb = (b || '').trim().toLowerCase();
+  const len = Math.min(sa.length, sb.length);
+  for (let i = 0; i < len; i++) {
+    const ca = sa[i];
+    const cb = sb[i];
+    if (ca === cb) continue;
+    const ga = charSortGroup(ca);
+    const gb = charSortGroup(cb);
+    if (ga !== gb) return ga - gb;
+    if (ga === 2) {
+      const cmp = ca.localeCompare(cb);
+      if (cmp !== 0) return cmp;
+    } else {
+      return ca < cb ? -1 : 1;
+    }
+  }
+  return sa.length - sb.length;
+}
+
+function sortTextItems(items, mode) {
+  if (mode === SORT_MODE.RECENT) return items;
+  return [...items].sort((a, b) => {
+    if (mode === SORT_MODE.ALPHA) {
+      const cmp = compareAlphaText(a.preview, b.preview);
+      if (cmp !== 0) return cmp;
+    } else if (mode === SORT_MODE.LENGTH) {
+      if (a.length !== b.length) return a.length - b.length;
+    }
+    return b.savedAt - a.savedAt;
+  });
+}
 
 function isKindEnabled(kind) {
   const settingKey = KIND_SETTING_KEYS[kind];
@@ -66,12 +117,19 @@ function activeKindFilter() {
 
 // ---------- rendering ----------
 
-function updateFilterToggleButton() {
+function updateSortButton() {
   const btn = $('filterToggleBtn');
-  if (!btn) return;
-  const active = textsView.filter.kind !== 'all' || textsView.chipsExpanded;
-  btn.classList.toggle('active', active);
-  btn.setAttribute('aria-expanded', String(textsView.chipsExpanded));
+  const badge = $('sortBadge');
+  if (!btn || !badge) return;
+  const mode = currentSortMode();
+  const meta = SORT_META[mode];
+  const label = t(meta.titleKey);
+  btn.classList.toggle('active', meta.active);
+  btn.dataset.sort = mode;
+  btn.title = label;
+  btn.setAttribute('aria-label', label);
+  badge.textContent = meta.badge;
+  badge.hidden = !meta.badge;
 }
 
 function renderKindChips() {
@@ -80,7 +138,6 @@ function renderKindChips() {
   if (!visibleKinds.includes(textsView.filter.kind)) {
     textsView.filter.kind = 'all';
   }
-  chips.classList.toggle('expanded', textsView.chipsExpanded);
   chips.replaceChildren(...visibleKinds.map((kind) => h('button', {
     type: 'button',
     className: 'chip',
@@ -92,7 +149,7 @@ function renderKindChips() {
       refreshTexts().catch(reportError);
     }
   })));
-  updateFilterToggleButton();
+  updateSortButton();
 }
 
 function renderTextCard(item) {
@@ -168,20 +225,37 @@ async function refreshTexts() {
   const pinnedOnly = textsView.filter.kind === 'pinned';
   const filter = activeKindFilter();
   const matches = buildTextMatcher(filter);
+  const sortMode = currentSortMode();
 
-  const [pinnedItems, tempEntries, page] = await Promise.all([
+  const [rawPinned, tempEntries, recentSource] = await Promise.all([
     queryPinnedTexts(filter),
     pinnedOnly ? [] : listTemp(),
-    pinnedOnly ? { items: [], nextCursor: null } : queryTexts(filter)
+    pinnedOnly
+      ? { items: [], nextCursor: null }
+      : (sortMode === SORT_MODE.RECENT ? queryTexts(filter) : queryAllUnpinnedTexts(filter))
   ]);
   if (token !== textsView.token) return; // a newer refresh superseded this one
 
+  const pinnedItems = sortTextItems(rawPinned, sortMode);
+  const tempItems = tempEntries.filter(matches).map(toTempListItem);
+
+  let recentItems;
+  if (sortMode === SORT_MODE.RECENT) {
+    recentItems = [...tempItems, ...recentSource.items];
+    textsView.cursor = recentSource.nextCursor;
+    textsView.sortedQueue = [];
+    textsView.hasMore = Boolean(recentSource.nextCursor);
+  } else {
+    const sortedRecent = sortTextItems([...tempItems, ...recentSource], sortMode);
+    recentItems = sortedRecent.slice(0, LIMITS.PAGE_SIZE);
+    textsView.sortedQueue = sortedRecent.slice(LIMITS.PAGE_SIZE);
+    textsView.cursor = null;
+    textsView.hasMore = textsView.sortedQueue.length > 0;
+  }
+
   textsView.items.clear();
-  textsView.cursor = page.nextCursor;
-  textsView.hasMore = Boolean(page.nextCursor);
   textsView.loading = false;
 
-  const recentItems = [...tempEntries.filter(matches).map(toTempListItem), ...page.items];
   $('pinnedList').replaceChildren(...pinnedItems.map(renderTextCard));
   $('pinnedSection').hidden = pinnedItems.length === 0;
   $('pinnedCount').textContent = String(pinnedItems.length);
@@ -195,6 +269,16 @@ async function refreshTexts() {
 
 async function loadMoreTexts() {
   if (!textsView.hasMore || textsView.loading) return;
+  const sortMode = currentSortMode();
+  if (sortMode !== SORT_MODE.RECENT) {
+    const nextBatch = textsView.sortedQueue.slice(0, LIMITS.PAGE_SIZE);
+    textsView.sortedQueue = textsView.sortedQueue.slice(LIMITS.PAGE_SIZE);
+    textsView.hasMore = textsView.sortedQueue.length > 0;
+    if (nextBatch.length) $('textList').append(...nextBatch.map(renderTextCard));
+    rewatchTextSentinel();
+    return;
+  }
+
   const token = textsView.token;
   textsView.loading = true;
   try {
@@ -322,7 +406,7 @@ function initTextsView() {
 
   const chipsEl = $('kindChips');
   chipsEl.addEventListener('wheel', (event) => {
-    if (!textsView.chipsExpanded && event.deltaY !== 0) {
+    if (event.deltaY !== 0) {
       event.preventDefault();
       chipsEl.scrollLeft += event.deltaY;
     }
@@ -331,8 +415,13 @@ function initTextsView() {
   const filterBtn = $('filterToggleBtn');
   if (filterBtn) {
     filterBtn.addEventListener('click', () => {
-      textsView.chipsExpanded = !textsView.chipsExpanded;
-      renderKindChips();
+      const current = currentSortMode();
+      const next = SORT_ORDER[(SORT_ORDER.indexOf(current) + 1) % SORT_ORDER.length];
+      appState.settings.textSortMode = next;
+      updateSortButton();
+      setSetting('textSortMode', next)
+        .then(() => refreshTexts())
+        .catch(reportError);
     });
   }
 

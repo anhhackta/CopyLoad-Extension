@@ -51,8 +51,12 @@ const I18N = Object.freeze({
 
     // Texts
     searchPlaceholder: 'Tìm trong clipboard…',
-    filterBtn: 'Bộ lọc',
+    sortRecent: 'Sắp xếp: Mới nhất (mặc định)',
+    sortAlpha: 'Sắp xếp: A–Z (ký tự đặc biệt, số, chữ)',
+    sortLength: 'Sắp xếp: Số ký tự (ngắn → dài)',
     dropZoneText: 'Kéo văn bản hoặc hình ảnh vào đây để lưu',
+    dropOverlayTitle: 'Thả văn bản hoặc ảnh vào đây để lưu',
+    dropOverlayHint: 'Khu vực thả: Văn bản & Hình ảnh',
     dropSavedText: 'Đã lưu văn bản kéo thả',
     dropSavedImage: 'Đã lưu hình ảnh kéo thả',
     dropOmniboxEmpty: 'Trình duyệt không gửi dữ liệu khi kéo từ thanh địa chỉ (Omnibox). Hãy nhấn Ctrl+C hoặc bôi đen rồi kéo lại.',
@@ -224,8 +228,12 @@ const I18N = Object.freeze({
     navSettings: 'Settings',
 
     searchPlaceholder: 'Search clipboard…',
-    filterBtn: 'Filters',
+    sortRecent: 'Sort: Newest first (default)',
+    sortAlpha: 'Sort: A–Z (symbols, numbers, letters)',
+    sortLength: 'Sort: Character count (short → long)',
     dropZoneText: 'Drag text or images here to save',
+    dropOverlayTitle: 'Drop text or images here to save',
+    dropOverlayHint: 'Drop zone: Text & Images',
     dropSavedText: 'Saved dropped text',
     dropSavedImage: 'Saved dropped image',
     dropOmniboxEmpty: 'Browser did not send data when dragging from the address bar (Omnibox). Press Ctrl+C or re-select and drag again.',

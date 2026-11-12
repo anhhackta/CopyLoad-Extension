@@ -142,6 +142,7 @@ async function handleDropData(dataTransfer) {
     if (savedAny) {
       toast(t('dropSavedImage'));
       if (activeViewName === 'images') await refreshImages();
+      else if (activeViewName === 'data') await refreshDataSummary();
     }
     return;
   }
@@ -151,6 +152,7 @@ async function handleDropData(dataTransfer) {
   if (imgSrc && (await trySaveImageFromUrl(imgSrc))) {
     toast(t('dropSavedImage'));
     if (activeViewName === 'images') await refreshImages();
+    else if (activeViewName === 'data') await refreshDataSummary();
     return;
   }
 
@@ -166,6 +168,7 @@ async function handleDropData(dataTransfer) {
     else await addTemp(text);
     toast(t('dropSavedText'));
     if (activeViewName === 'texts') await refreshTexts();
+    else if (activeViewName === 'data') await refreshDataSummary();
     return;
   }
 
@@ -174,34 +177,58 @@ async function handleDropData(dataTransfer) {
 }
 
 function initDropZones() {
-  document.querySelectorAll('.dropzone').forEach((zone) => {
-    let dragDepth = 0;
+  const content = $('mainContent');
+  const overlay = $('dropOverlay');
+  if (!content || !overlay) return;
 
-    zone.addEventListener('dragenter', (event) => {
-      event.preventDefault();
-      dragDepth++;
-      zone.classList.add('dragover');
-    });
+  let dragDepth = 0;
+  let internalDrag = false;
 
-    zone.addEventListener('dragover', (event) => {
-      event.preventDefault();
-      if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy';
-      zone.classList.add('dragover');
-    });
+  const hideOverlay = () => {
+    dragDepth = 0;
+    overlay.hidden = true;
+  };
 
-    zone.addEventListener('dragleave', () => {
-      dragDepth = Math.max(0, dragDepth - 1);
-      if (dragDepth === 0) zone.classList.remove('dragover');
-    });
+  const canDrop = () => !internalDrag && $('lockScreen').hidden;
 
-    zone.addEventListener('drop', (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      dragDepth = 0;
-      zone.classList.remove('dragover');
-      handleDropData(event.dataTransfer).catch(reportError);
-    });
+  content.addEventListener('dragstart', () => { internalDrag = true; });
+  document.addEventListener('dragend', () => {
+    internalDrag = false;
+    hideOverlay();
   });
+
+  content.addEventListener('dragenter', (event) => {
+    if (!canDrop()) return;
+    event.preventDefault();
+    dragDepth++;
+    overlay.hidden = false;
+  });
+
+  content.addEventListener('dragover', (event) => {
+    if (!canDrop()) return;
+    event.preventDefault();
+    if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy';
+    overlay.hidden = false;
+  });
+
+  content.addEventListener('dragleave', (event) => {
+    if (event.relatedTarget === null || !content.contains(event.relatedTarget)) {
+      hideOverlay();
+      return;
+    }
+    dragDepth = Math.max(0, dragDepth - 1);
+    if (dragDepth === 0) overlay.hidden = true;
+  });
+
+  content.addEventListener('drop', (event) => {
+    if (!canDrop()) return;
+    event.preventDefault();
+    event.stopPropagation();
+    hideOverlay();
+    handleDropData(event.dataTransfer).catch(reportError);
+  });
+
+  window.addEventListener('blur', hideOverlay);
 }
 
 function wireShell() {
@@ -221,6 +248,7 @@ function wireShell() {
     syncSettingsControls();
     if (
       'language' in updates ||
+      'textSortMode' in updates ||
       'enableKindText' in updates ||
       'enableKindLink' in updates ||
       'enableKindCode' in updates ||

@@ -31,7 +31,7 @@
       <button class="nav-item" type="button" data-nav="settings"><span data-icon="sliders"></span><span data-i18n="navSettings"></span></button>
     </nav>
 
-    <main class="content">
+    <main class="content" id="mainContent">
       <!-- TEXTS -->
       <section class="view active" id="view-texts">
         <div class="toolbar">
@@ -39,14 +39,13 @@
             <span data-icon="search"></span>
             <input id="searchInput" type="search" autocomplete="off" data-i18n-placeholder="searchPlaceholder">
           </label>
-          <button class="icon-btn" id="filterToggleBtn" type="button" data-i18n-title="filterBtn" data-icon="filter"></button>
+          <button class="icon-btn sort-btn" id="filterToggleBtn" type="button" data-sort="recent">
+            <span data-icon="filter"></span>
+            <span class="sort-badge" id="sortBadge" hidden></span>
+          </button>
           <button class="btn" id="textSelectBtn" type="button" data-i18n="select"></button>
         </div>
         <div class="chips" id="kindChips" role="group"></div>
-        <div class="dropzone" id="textDropZone">
-          <span data-icon="download"></span>
-          <span data-i18n="dropZoneText"></span>
-        </div>
         <div class="bulkbar" id="textBulkBar" hidden>
           <span class="bulk-count" id="textBulkCount"></span>
           <div class="bulk-actions">
@@ -267,12 +266,20 @@
             <h2 data-i18n="settingsAbout"></h2>
             <p class="panel-desc" id="versionText"></p>
             <div class="link-row">
-              <a href="https://github.com/anhhackta/" target="_blank" rel="noopener"><span data-i18n="author"></span>: @anhhackta</a>
-              <a href="https://www.buymeacoffee.com/anhhackta" target="_blank" rel="noopener" data-i18n="donate"></a>
+              <a href="https://github.com/anhhackta/" target="_blank" rel="noopener"><span data-i18n="author"></span>: HoàngX</a>
+              <a href="https://www.paypal.com/paypalme/bahoang2k2" target="_blank" rel="noopener" data-i18n="donate"></a>
             </div>
           </div>
         </div>
       </section>
+
+      <div class="drop-overlay" id="dropOverlay" hidden>
+        <div class="drop-overlay-box">
+          <span data-icon="download"></span>
+          <p class="drop-overlay-title" data-i18n="dropOverlayTitle"></p>
+          <p class="drop-overlay-hint" data-i18n="dropOverlayHint"></p>
+        </div>
+      </div>
     </main>
   </div>
 

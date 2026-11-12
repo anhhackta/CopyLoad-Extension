@@ -53,6 +53,12 @@ const KIND = Object.freeze({
   CODE: 'code'
 });
 
+const SORT_MODE = Object.freeze({
+  RECENT: 'recent',
+  ALPHA: 'alpha',
+  LENGTH: 'length'
+});
+
 const STORE = Object.freeze({
   TEXTS: 'texts',
   IMAGES: 'images'
@@ -90,6 +96,7 @@ const SETTINGS_SCHEMA = Object.freeze({
   enablePersistent: { area: 'local', default: true },
   enablePasteMulti: { area: 'local', default: false },
   enableFloatingNote: { area: 'local', default: false },
+  textSortMode: { area: 'local', default: 'recent', allowed: ['recent', 'alpha', 'length'] },
   autoDeleteDays: { area: 'local', default: 0, allowed: [0, 7, 30, 90, 180] },
   lockTimeoutMin: { area: 'local', default: 1, allowed: [0, 1, 5, 15, 60] }
 });

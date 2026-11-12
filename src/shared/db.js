@@ -187,6 +187,15 @@ async function queryPinnedTexts({ search = '', kind = 'all' } = {}) {
   return records.filter(matches).map(toTextListItem);
 }
 
+// All unpinned texts matching the filter, used when sorting by A-Z or length.
+async function queryAllUnpinnedTexts({ search = '', kind = 'all' } = {}) {
+  const matches = buildTextMatcher({ search, kind });
+  const { records } = await scanStore(STORE.TEXTS, {
+    accept: (rec) => !rec.pinned && matches(rec)
+  });
+  return records.map(toTextListItem);
+}
+
 // Every id matching the filter (pinned included). Powers "select all".
 async function queryTextIds(filter = {}) {
   const matches = buildTextMatcher(filter);
